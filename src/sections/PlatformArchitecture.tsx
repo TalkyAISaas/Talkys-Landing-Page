@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   BookOpen,
   CalendarCheck,
@@ -20,8 +20,9 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { useReveal } from '@/hooks/useReveal';
 import { useCopy } from '@/i18n/LocaleContext';
 import { cn } from '@/lib/utils';
+import '@/styles/platform.css';
 
-// Ordered from how the agent presents itself down to where it shows up.
+// Ordered from the bottom of the stack (how the agent presents itself) to the top (where it shows up).
 const layerIcons: LucideIcon[] = [UserCircle, BookOpen, Languages, Plug, Zap, Database, Radio];
 const templateIcons: LucideIcon[] = [CalendarCheck, UtensilsCrossed, Car, Headphones];
 
@@ -33,9 +34,9 @@ const en = {
   description: 'Seven layers, set up for you by our team. Pick an example and watch one come together.',
   layersLabel: 'What a Talkys agent is made of',
   examplesLabel: 'Example agents',
-  progress: (built: number, total: number) => `${built} of ${total} layers`,
+  layerOf: (n: number, total: number) => `Layer ${n} of ${total}`,
+  forAgent: 'For this agent',
   live: 'Live',
-  building: 'Building',
   layers: [
     { title: 'Persona', description: 'Its name, tone and manners, so it sounds like your best front-desk person.' },
     { title: 'Knowledge', description: 'Your menu, prices, services, opening hours, policies and FAQs.' },
@@ -110,9 +111,9 @@ const copy: { en: typeof en; ar: typeof en } = {
     description: 'سبع طبقات يجهّزها فريقنا لك. اختر مثالاً وشاهد الوكيل يكتمل أمامك.',
     layersLabel: 'مكوّنات وكيل Talkys',
     examplesLabel: 'أمثلة على الوكلاء',
-    progress: (built: number, total: number) => `${built} من ${total} طبقات`,
+    layerOf: (n: number, total: number) => `الطبقة ${n} من ${total}`,
+    forAgent: 'لهذا الوكيل',
     live: 'جاهز',
-    building: 'قيد الإعداد',
     layers: [
       { title: 'الشخصية', description: 'اسمه ونبرته وأسلوبه، ليبدو كأفضل موظف استقبال لديك.' },
       { title: 'المعرفة', description: 'قائمتك وأسعارك وخدماتك ومواعيد العمل والسياسات والأسئلة الشائعة.' },
@@ -180,50 +181,77 @@ const copy: { en: typeof en; ar: typeof en } = {
 };
 
 const LAYER_COUNT = layerIcons.length;
-const LAYER_MS = 420;
+const CYCLE_MS = 2400;
 
 export function PlatformArchitecture() {
   const t = useCopy(copy);
   const sectionRef = useReveal<HTMLElement>();
-  const [built, setBuilt] = useState(0); // how many layers are configured
-  const [started, setStarted] = useState(false);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+  const [entering, setEntering] = useState(false);
+  const [inView, setInView] = useState(false);
+  const [active, setActive] = useState(0);
   const [template, setTemplate] = useState(0);
-  const [focus, setFocus] = useState<number | null>(null);
+  const [autoplay, setAutoplay] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const [reduced, setReduced] = useState(false);
 
-  // Build once, the first time the panel is properly in view.
+  // Drop the layers in the first time the stack is on screen; afterwards just track visibility.
+  // The entrance stagger only lasts for the drop, so later lifts respond at once.
   useEffect(() => {
-    const el = sectionRef.current?.querySelector('.agent-panel');
+    const el = stageRef.current;
     if (!el) return;
+    let first = true;
+    let timer = 0;
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setStarted(true);
-        io.disconnect();
+        setInView(entry.isIntersecting);
+        if (!entry.isIntersecting || !first) return;
+        first = false;
+        setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        setShown(true);
+        setEntering(true);
+        timer = window.setTimeout(() => setEntering(false), 110 * LAYER_COUNT + 600);
       },
-      { threshold: 0.45 }
+      { threshold: 0.3 }
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, [sectionRef]);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, []);
 
+  // Walk the highlight up the stack, then move on to the next example agent.
   useEffect(() => {
-    if (!started || built >= LAYER_COUNT) return;
-    // Reduced motion: complete the build in one step instead of layer by layer.
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const timer = window.setTimeout(
-      () => setBuilt((b) => (reduced ? LAYER_COUNT : b + 1)),
-      reduced ? 0 : built === 0 ? 250 : LAYER_MS
-    );
-    return () => window.clearTimeout(timer);
-  }, [started, built]);
+    if (!autoplay || !inView || paused || reduced || entering) return;
+    const id = window.setTimeout(() => {
+      if (active === LAYER_COUNT - 1) {
+        setTemplate((tpl) => (tpl + 1) % t.templates.length);
+        setActive(0);
+      } else {
+        setActive(active + 1);
+      }
+    }, CYCLE_MS);
+    return () => window.clearTimeout(id);
+  }, [active, autoplay, inView, paused, reduced, entering, t.templates.length]);
+
+  const pickLayer = (index: number) => {
+    setAutoplay(false);
+    setActive(index);
+  };
+  const pickTemplate = (index: number) => {
+    setAutoplay(false);
+    setTemplate(index);
+  };
 
   const current = t.templates[template];
   const CurrentIcon = templateIcons[template];
-  const live = built >= LAYER_COUNT;
-  const buildingIndex = live ? -1 : built; // the layer being added right now
+  const ActiveIcon = layerIcons[active];
+  const layer = t.layers[active];
 
   return (
-    <section ref={sectionRef} id="platform" className="relative py-20 lg:py-28">
+    <section ref={sectionRef} id="platform" className="relative overflow-hidden py-20 lg:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <SectionHeader
           eyebrow={t.eyebrow}
@@ -235,109 +263,139 @@ export function PlatformArchitecture() {
           description={t.description}
         />
 
-        <div className="mt-14 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-12">
-          {/* The layers */}
-          <ol aria-label={t.layersLabel} className="space-y-1">
-            {t.layers.map(({ title, description }, index) => {
-              const Icon = layerIcons[index];
-              const state = index < built ? 'done' : index === buildingIndex && started ? 'building' : 'waiting';
-              return (
-                <li key={index}>
-                  <button
-                    type="button"
-                    data-state={state}
-                    data-focus={focus === index || undefined}
-                    onClick={() => setFocus(focus === index ? null : index)}
-                    onPointerEnter={(e) => e.pointerType === 'mouse' && setFocus(index)}
-                    onPointerLeave={(e) => e.pointerType === 'mouse' && setFocus(null)}
-                    aria-pressed={focus === index}
-                    className="arch-row group flex w-full items-start gap-4 rounded-2xl px-4 py-3.5 text-start"
-                  >
-                    <span className="arch-row-icon mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px]">
-                      <Icon className="h-[18px] w-[18px]" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block font-display text-base font-semibold text-[var(--text-primary)]">{title}</span>
-                      <span className="mt-0.5 block text-[14px] leading-relaxed text-[var(--text-secondary)]">{description}</span>
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-
-          {/* The agent being assembled */}
-          <div className="agent-panel glass-panel-premium overflow-hidden lg:sticky lg:top-28">
-            {/* Example agents: pick one first, then watch it build */}
-            <div role="tablist" aria-label={t.examplesLabel} className="flex gap-1 border-b border-[var(--border-subtle)] bg-[var(--bg-primary)] p-2">
-              {t.templates.map((tpl, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  role="tab"
-                  aria-selected={template === i}
-                  onClick={() => setTemplate(i)}
-                  className={cn(
-                    'min-w-0 flex-1 truncate rounded-lg px-2 py-2 text-[13px] font-semibold transition-[color,background-color,box-shadow,transform] duration-150 ease-out-strong active:scale-[0.97] sm:px-3 sm:text-sm',
-                    template === i ? 'bg-white text-[var(--indigo-600)] shadow-xs' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                  )}
-                >
-                  {tpl.label}
-                </button>
-              ))}
-            </div>
-            <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-5 py-4 sm:px-6">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white" style={{ background: 'var(--cta-gradient)' }}>
-                  <CurrentIcon className="h-[18px] w-[18px]" />
-                </span>
-                <div className="min-w-0">
-                  <p key={template} className="agent-swap font-display text-[15px] font-semibold leading-snug text-[var(--text-primary)] sm:truncate">
-                    {current.agent}
-                  </p>
-                  <p className="font-mono text-[11px] tabular-nums text-[var(--text-muted)]">{t.progress(built, LAYER_COUNT)}</p>
-                </div>
-              </div>
-              <span
+        {/* Example agents */}
+        <div role="tablist" aria-label={t.examplesLabel} className="mx-auto mt-10 flex max-w-xl gap-1 rounded-2xl border border-[var(--border-color)] bg-white p-1.5 shadow-xs">
+          {t.templates.map((tpl, i) => {
+            const Icon = templateIcons[i];
+            return (
+              <button
+                key={i}
+                type="button"
+                role="tab"
+                aria-selected={template === i}
+                onClick={() => pickTemplate(i)}
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider transition-colors duration-200',
-                  live ? 'bg-[var(--viz-green-soft)] text-[var(--viz-green)]' : 'bg-[var(--indigo-50)] text-[var(--indigo-600)]'
+                  'flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl px-1 py-2 text-[12px] font-semibold sm:px-2 transition-[color,background-color,box-shadow,transform] duration-200 ease-out-strong active:scale-[0.97] sm:text-sm',
+                  template === i ? 'bg-[var(--blue-500)] text-white shadow-card' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                 )}
               >
-                {live ? <Check className="h-3 w-3" strokeWidth={3} /> : <span className="agent-dot h-1.5 w-1.5 rounded-full bg-current" />}
-                {live ? t.live : t.building}
-              </span>
-            </div>
+                <Icon aria-hidden className="hidden h-4 w-4 shrink-0 sm:block" />
+                <span className="truncate">{tpl.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-            <ul className="divide-y divide-[var(--border-subtle)]">
+        <div
+          className="mt-8 grid items-center gap-6 lg:mt-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-10"
+          onPointerEnter={() => setPaused(true)}
+          onPointerLeave={() => setPaused(false)}
+        >
+          {/* 3D stack */}
+          <div
+            ref={stageRef}
+            data-shown={shown || undefined}
+            data-entering={entering || undefined}
+            className="pf-stage relative h-[400px] [--gap:34px] [--slab-h:150px] [--slab-w:260px] [--stack-y:80px] sm:h-[560px] sm:[--gap:48px] sm:[--slab-h:200px] sm:[--slab-w:360px] sm:[--stack-y:110px]"
+          >
+            <div className="hero-glow opacity-60" />
+            <ol aria-label={t.layersLabel} className="pf-stack">
               {t.layers.map(({ title }, index) => {
                 const Icon = layerIcons[index];
+                const isActive = index === active;
                 return (
                   <li
                     key={index}
-                    data-on={index < built || undefined}
-                    data-focus={focus === index || undefined}
-                    className="agent-row flex items-start gap-3 px-5 py-3 sm:px-6"
+                    data-active={isActive || undefined}
+                    className={cn('pf-slab', !reduced && 'pf-ripple')}
+                    style={{ '--i': index } as CSSProperties}
+                    onPointerEnter={(e) => e.pointerType === 'mouse' && pickLayer(index)}
+                    onClick={() => pickLayer(index)}
                   >
-                    <Icon className="mt-1 h-4 w-4 shrink-0 text-[var(--indigo-400)]" />
-                    <div className="min-w-0 flex-1">
-                      <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">{title}</p>
-                      <div key={template} className="mt-1.5 flex flex-wrap gap-1.5">
-                        {current.values[index].map((value, v) => (
-                          <span
-                            key={value}
-                            className="agent-chip rounded-md border border-[var(--border-color)] bg-[var(--bg-primary)] px-2 py-0.5 text-[13px] font-medium text-[var(--text-primary)]"
-                            style={{ '--v': v } as CSSProperties}
-                          >
-                            {value}
-                          </span>
-                        ))}
+                    {/* Re-keyed per template so the ripple replays on every switch */}
+                    <div key={template} className="pf-face flex flex-col justify-end p-3 sm:p-4">
+                      {/* Content sits on the front edge, the part of each slab that stays visible in the stack */}
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-colors duration-300 sm:h-8 sm:w-8',
+                            isActive ? 'bg-[var(--plum-500)] text-white' : 'bg-white text-[var(--indigo-500)]'
+                          )}
+                        >
+                          <Icon aria-hidden className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </span>
+                        <span className="shrink-0 font-display text-[13px] font-semibold text-[var(--text-primary)] sm:text-[15px]">{title}</span>
+                        <span className="hidden min-w-0 truncate text-[10px] text-[var(--text-muted)] sm:block sm:text-[11px]">· {current.values[index][0]}</span>
+                        <span className="ms-auto font-mono text-[10px] text-[var(--text-muted)]">0{index + 1}</span>
                       </div>
                     </div>
                   </li>
                 );
               })}
-            </ul>
+              <li aria-hidden className="pf-beam" />
+            </ol>
+          </div>
+
+          {/* What the highlighted layer does for this agent */}
+          <div className="glass-panel-premium relative overflow-hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-5 py-4 sm:px-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white" style={{ background: 'var(--cta-gradient)' }}>
+                  <CurrentIcon className="h-[18px] w-[18px]" />
+                </span>
+                <p key={template} className="panel-swap truncate font-display text-[15px] font-semibold text-[var(--text-primary)]">
+                  {current.agent}
+                </p>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[var(--viz-green-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--viz-green)]">
+                <Check className="h-3 w-3" strokeWidth={3} />
+                {t.live}
+              </span>
+            </div>
+
+            <div key={`${template}-${active}`} className="panel-swap px-5 py-6 sm:px-6">
+              <p className="font-mono text-[11px] font-semibold uppercase text-[var(--plum-600)]">{t.layerOf(active + 1, LAYER_COUNT)}</p>
+              <h3 className="mt-2 flex items-center gap-2.5 font-display text-2xl font-bold text-[var(--text-primary)]">
+                <ActiveIcon aria-hidden className="h-6 w-6 text-[var(--plum-500)]" />
+                {layer.title}
+              </h3>
+              <p className="mt-3 text-[15px] leading-relaxed text-[var(--text-secondary)]">{layer.description}</p>
+              <p className="mt-6 text-xs font-semibold text-[var(--text-muted)]">{t.forAgent}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {current.values[active].map((value, v) => (
+                  <span
+                    key={value}
+                    className="pf-chip rounded-lg border border-[var(--plum-200)] bg-[var(--plum-50)] px-2.5 py-1 text-[13px] font-medium text-[var(--text-primary)]"
+                    style={{ '--v': v } as CSSProperties}
+                  >
+                    {value}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Layer picker + autoplay progress */}
+            <div className="flex items-center gap-1.5 border-t border-[var(--border-subtle)] px-5 py-4 sm:px-6">
+              {t.layers.map(({ title }, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  aria-label={title}
+                  aria-pressed={index === active}
+                  onClick={() => pickLayer(index)}
+                  className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--indigo-100)]"
+                >
+                  {index < active && <span className="absolute inset-0 bg-[var(--indigo-400)]" />}
+                  {index === active && (
+                    autoplay && inView && !paused && !reduced && !entering ? (
+                      <span key={`${template}-${active}`} className="pf-progress absolute inset-0 bg-[var(--plum-500)]" style={{ '--dur': `${CYCLE_MS}ms` } as CSSProperties} />
+                    ) : (
+                      <span className="absolute inset-0 bg-[var(--plum-500)]" />
+                    )
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

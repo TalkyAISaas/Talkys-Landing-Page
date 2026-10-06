@@ -1,0 +1,132 @@
+/* Platform section: the agent as a 3D stack of glass layers. */
+
+.pf-stage {
+  perspective: 1600px;
+  perspective-origin: 50% 30%;
+}
+
+.pf-stack {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: var(--slab-w);
+  height: var(--slab-h);
+  transform-style: preserve-3d;
+  transform: translateY(var(--stack-y)) rotateX(58deg) rotateZ(-38deg);
+  animation: pf-sway 9s ease-in-out infinite alternate;
+}
+@keyframes pf-sway {
+  from { transform: translateY(var(--stack-y)) rotateX(58deg) rotateZ(-42deg); }
+  to { transform: translateY(var(--stack-y)) rotateX(56deg) rotateZ(-33deg); }
+}
+
+.pf-slab {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform: translateZ(calc(var(--i) * var(--gap) + var(--lift, 0px))) translateY(var(--pull, 0px));
+  opacity: 1;
+  transition: transform 520ms var(--ease-out), opacity 520ms var(--ease-out);
+  transition-delay: calc(var(--i) * 110ms);
+  cursor: pointer;
+}
+.pf-stage:not([data-shown]) .pf-slab {
+  opacity: 0;
+  transform: translateZ(calc(var(--i) * var(--gap) + 260px));
+}
+.pf-stage[data-shown] .pf-slab {
+  transition-delay: 0ms;
+}
+.pf-stage[data-entering] .pf-slab {
+  transition-delay: calc(var(--i) * 110ms);
+}
+.pf-slab[data-active] {
+  --lift: 10px;
+  --pull: calc(var(--slab-h) * 0.32);
+}
+
+.pf-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--indigo-300) 55%, transparent);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--indigo-50) 80%, transparent));
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 18px 30px -18px rgba(14, 79, 92, 0.35);
+  transition: border-color 300ms ease, box-shadow 300ms ease, background 300ms ease;
+}
+.pf-slab[data-active] .pf-face {
+  border-color: var(--plum-400);
+  background: linear-gradient(135deg, #fff, color-mix(in srgb, var(--plum-50) 90%, transparent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--plum-500) 18%, transparent), 0 28px 40px -16px rgba(229, 119, 86, 0.45);
+}
+
+/* Template switch: each slab ripples in turn. */
+.pf-ripple .pf-face {
+  animation: pf-ripple 600ms var(--ease-out) both;
+  animation-delay: calc(var(--i) * 70ms);
+}
+@keyframes pf-ripple {
+  0% { transform: translateZ(0); }
+  40% { transform: translateZ(14px); filter: brightness(1.06); }
+  100% { transform: translateZ(0); }
+}
+
+/* Light travelling up through the stack. */
+.pf-beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--plum-400), color-mix(in srgb, var(--plum-400) 0%, transparent) 70%);
+  box-shadow: 0 0 18px 6px color-mix(in srgb, var(--plum-400) 45%, transparent);
+  animation: pf-beam 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  pointer-events: none;
+}
+@keyframes pf-beam {
+  0% { transform: translateZ(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateZ(calc(7 * var(--gap))); opacity: 0; }
+}
+
+/* Detail card chips pop in one by one. */
+.pf-chip {
+  animation: pf-chip 360ms var(--ease-out) both;
+  animation-delay: calc(var(--v) * 80ms + 80ms);
+}
+@keyframes pf-chip {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+
+.pf-progress {
+  transform-origin: left;
+  animation: pf-progress var(--dur) linear both;
+}
+[dir='rtl'] .pf-progress {
+  transform-origin: right;
+}
+@keyframes pf-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pf-stack,
+  .pf-beam,
+  .pf-ripple .pf-face,
+  .pf-chip,
+  .pf-progress {
+    animation: none;
+  }
+  .pf-slab {
+    transition: none;
+  }
+  .pf-beam {
+    display: none;
+  }
+}
