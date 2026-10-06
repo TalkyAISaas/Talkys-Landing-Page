@@ -1,0 +1,104 @@
+/* Solutions page: animated industry showcases. */
+
+.uc-section {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 700ms var(--ease-out), transform 700ms var(--ease-out);
+}
+.uc-section[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+
+/* Slow zoom on the photo. */
+.uc-photo img {
+  animation: uc-kenburns 18s ease-in-out infinite alternate;
+}
+@keyframes uc-kenburns {
+  from { transform: scale(1.02) translate(0, 0); }
+  to { transform: scale(1.12) translate(-2%, -1%); }
+}
+
+/* Floating badge on the photo. */
+.uc-float {
+  animation: uc-float 4.5s ease-in-out infinite;
+}
+@keyframes uc-float {
+  50% { transform: translateY(-6px); }
+}
+
+/* Activity toast that replays for every step. */
+.uc-toast {
+  animation: uc-toast 480ms var(--ease-out) both;
+}
+@keyframes uc-toast {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+.uc-swap {
+  animation: uc-swap 420ms var(--ease-out) both;
+}
+@keyframes uc-swap {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Tool chips drift in once the section appears. */
+.uc-chip {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 500ms var(--ease-out), transform 500ms var(--ease-out);
+  transition-delay: calc(300ms + var(--c) * 90ms);
+}
+.uc-section[data-visible] .uc-chip {
+  opacity: 1;
+  transform: none;
+}
+
+/* Workflow progress line. */
+.uc-line-fill {
+  transition: transform 600ms var(--ease-out);
+  transform-origin: left;
+}
+[dir='rtl'] .uc-line-fill {
+  transform-origin: right;
+}
+
+.uc-step-dot[data-state='active'] {
+  animation: uc-pulse 1.4s ease-out infinite;
+}
+@keyframes uc-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--plum-500) 45%, transparent); }
+  100% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--plum-500) 0%, transparent); }
+}
+
+/* Channel tab underline timer. */
+.uc-timer {
+  transform-origin: left;
+  animation: uc-timer var(--dur) linear both;
+}
+[dir='rtl'] .uc-timer {
+  transform-origin: right;
+}
+@keyframes uc-timer {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uc-section,
+  .uc-chip {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .uc-photo img,
+  .uc-float,
+  .uc-toast,
+  .uc-swap,
+  .uc-step-dot,
+  .uc-timer {
+    animation: none;
+  }
+}
