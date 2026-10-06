@@ -47,7 +47,10 @@ const CHANNELS: { id: string; icon: LucideIcon; kind: Kind; header: string }[] =
   { id: 'email', icon: Mail, kind: 'email', header: 'var(--blue-500)' },
 ];
 
-const AUTOPLAY_MS = 7000;
+const AUTOPLAY_MS = 500;
+// Seconds between messages: quick while cycling so each conversation fits its slot, relaxed once a visitor picks a channel.
+const STAGGER_AUTO = 0.05;
+const STAGGER_PICKED = 0.55;
 
 const copy = {
   en: {
@@ -318,6 +321,7 @@ export function ChannelsSectionB() {
   const [active, setActive] = useState(0);
   const [autoplay, setAutoplay] = useState(true);
   const [inView, setInView] = useState(false);
+  const [paused, setPaused] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const sectionRef = useReveal<HTMLElement>();
@@ -332,10 +336,10 @@ export function ChannelsSectionB() {
   }, []);
 
   useEffect(() => {
-    if (!autoplay || !inView || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!autoplay || !inView || paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const id = window.setTimeout(() => setActive((i) => (i + 1) % CHANNELS.length), AUTOPLAY_MS);
     return () => window.clearTimeout(id);
-  }, [active, autoplay, inView]);
+  }, [active, autoplay, inView, paused]);
 
   const select = (index: number, focus = false) => {
     setAutoplay(false);
@@ -402,8 +406,8 @@ export function ChannelsSectionB() {
                   <TabIcon aria-hidden className="h-4 w-4" />
                   <span className="whitespace-nowrap">{t.channels[index].name}</span>
                   {/* Autoplay progress */}
-                  {selected && autoplay && inView && (
-                    <span key={active} aria-hidden className="ch-progress absolute inset-x-0 bottom-0 h-[2px] bg-[var(--plum-300)]" />
+                  {selected && autoplay && inView && !paused && (
+                    <span key={active} aria-hidden className="ch-progress absolute inset-x-0 bottom-0 h-[2px] bg-[var(--plum-300)]" style={{ animationDuration: `${AUTOPLAY_MS}ms` }} />
                   )}
                 </button>
               );
@@ -413,6 +417,8 @@ export function ChannelsSectionB() {
 
         <div
           ref={stageRef}
+          onPointerEnter={() => setPaused(true)}
+          onPointerLeave={() => setPaused(false)}
           id="channel-panel"
           role="tabpanel"
           aria-labelledby={`channel-tab-${meta.id}`}
@@ -447,7 +453,7 @@ export function ChannelsSectionB() {
           <div className="mx-auto w-full max-w-[400px]">
             <div className="rounded-[32px] border border-[var(--border-color)] bg-white p-2.5 shadow-lift">
               <div key={`screen-${meta.id}`} className="ch-swap flex h-[480px] flex-col overflow-hidden rounded-[24px] bg-[var(--bg-primary)]">
-                <Screen kind={meta.kind} header={meta.header} icon={Icon} channel={channel} t={t} />
+                <Screen stagger={autoplay ? STAGGER_AUTO : STAGGER_PICKED} kind={meta.kind} header={meta.header} icon={Icon} channel={channel} t={t} />
               </div>
             </div>
             <p className="mt-3 text-center text-xs text-[var(--text-muted)]">{t.sample}</p>
@@ -459,6 +465,7 @@ export function ChannelsSectionB() {
 }
 
 type ScreenProps = {
+  stagger: number;
   kind: Kind;
   header: string;
   icon: LucideIcon;
@@ -466,9 +473,9 @@ type ScreenProps = {
   t: (typeof copy)['en'];
 };
 
-function Screen({ kind, header, icon: Icon, channel, t }: ScreenProps) {
+function Screen({ stagger, kind, header, icon: Icon, channel, t }: ScreenProps) {
   const outcome = (
-    <div className="ch-item flex justify-center" style={{ animationDelay: `${channel.messages.length * 0.55 + 0.2}s` }}>
+    <div className="ch-item flex justify-center" style={{ animationDelay: `${(channel.messages.length + 0.4) * stagger}s` }}>
       <span
         className={cn(
           'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold text-[color-mix(in_srgb,var(--viz-green)_80%,black)]',
@@ -517,7 +524,7 @@ function Screen({ kind, header, icon: Icon, channel, t }: ScreenProps) {
         {/* Oldest lines clip off the top if the conversation is taller than the screen */}
         <div className="relative mt-3 flex min-h-0 flex-1 flex-col justify-end space-y-2.5 overflow-hidden px-4">
           {channel.messages.map((m, k) => (
-            <div key={k} className={cn('ch-item flex', m.from === 'agent' ? 'justify-end' : 'justify-start')} style={{ animationDelay: `${k * 0.55}s` }}>
+            <div key={k} className={cn('ch-item flex', m.from === 'agent' ? 'justify-end' : 'justify-start')} style={{ animationDelay: `${k * stagger}s` }}>
               <p
                 className={cn(
                   'max-w-[85%] rounded-2xl px-3.5 py-2 text-start text-[13px] leading-snug',
@@ -558,7 +565,7 @@ function Screen({ kind, header, icon: Icon, channel, t }: ScreenProps) {
         </div>
         <div className="flex-1 space-y-3 overflow-hidden p-4">
           {channel.messages.map((m, k) => (
-            <div key={k} className="ch-item rounded-xl border border-[var(--border-color)] bg-white p-3.5 text-start" style={{ animationDelay: `${k * 0.6}s` }}>
+            <div key={k} className="ch-item rounded-xl border border-[var(--border-color)] bg-white p-3.5 text-start" style={{ animationDelay: `${k * stagger}s` }}>
               <div className="mb-2 flex items-center gap-2">
                 <span
                   className={cn(
@@ -593,7 +600,7 @@ function Screen({ kind, header, icon: Icon, channel, t }: ScreenProps) {
       </div>
       <div className="flex flex-1 flex-col justify-end space-y-2.5 overflow-hidden p-4">
         {channel.messages.map((m, k) => (
-          <div key={k} className={cn('ch-item flex', m.from === 'agent' ? 'justify-end' : 'justify-start')} style={{ animationDelay: `${k * 0.55}s` }}>
+          <div key={k} className={cn('ch-item flex', m.from === 'agent' ? 'justify-end' : 'justify-start')} style={{ animationDelay: `${k * stagger}s` }}>
             <p
               className={cn(
                 'max-w-[80%] rounded-2xl px-3.5 py-2 text-start text-[13px] leading-snug shadow-xs',
