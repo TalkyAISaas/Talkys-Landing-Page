@@ -1,8 +1,10 @@
 'use client';
 
+import { useRef, useState, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
+  Bike,
   Blocks,
   CalendarClock,
   Code2,
@@ -11,34 +13,26 @@ import {
   LifeBuoy,
   MessageSquare,
   ShoppingCart,
+  Squirrel,
   Store,
   Users,
   Webhook,
   type LucideIcon,
-  Bike,
-  Squirrel,
 } from 'lucide-react';
 import { SectionHeader } from '@/components/SectionHeader';
 import { Button } from '@/components/ui/button';
 import { useReveal } from '@/hooks/useReveal';
 import { useCopy } from '@/i18n/LocaleContext';
+import { cn } from '@/lib/utils';
 
-/** `wordmark` logos already spell the brand name, so the chip shows the logo alone. */
+/** `wordmark` logos already spell the brand name, so the tile shows the logo larger and no icon box. */
 type Tool = { name: string; logo?: string; icon?: LucideIcon; wordmark?: boolean };
-type Group = { icon: LucideIcon; tools: Tool[] };
+type Category = { id: string; icon: LucideIcon; tools: Tool[] };
 
-// Brand names stay in Latin script in both locales; only group titles and generic tools are translated.
-const groups: Group[] = [
+// Brand names stay in Latin script in both locales; generic tools are named in the copy.
+const categories: Category[] = [
   {
-    icon: Users,
-    tools: [
-      { name: 'Salesforce', logo: '/integrationsAssets/Salesforce.svg' },
-      { name: 'HubSpot', logo: '/integrationsAssets/HubSpot.svg' },
-      { name: 'Zoho', logo: '/integrationsAssets/zoho.svg' },
-      { name: 'Odoo', logo: '/integrationsAssets/Odoo.svg' },
-    ],
-  },
-  {
+    id: 'pos',
     icon: Store,
     tools: [
       { name: 'Foodics', logo: '/logos/foodics.svg', wordmark: true },
@@ -49,6 +43,17 @@ const groups: Group[] = [
     ],
   },
   {
+    id: 'crm',
+    icon: Users,
+    tools: [
+      { name: 'Salesforce', logo: '/integrationsAssets/Salesforce.svg' },
+      { name: 'HubSpot', logo: '/integrationsAssets/HubSpot.svg' },
+      { name: 'Zoho', logo: '/integrationsAssets/zoho.svg' },
+      { name: 'Odoo', logo: '/integrationsAssets/Odoo.svg' },
+    ],
+  },
+  {
+    id: 'commerce',
     icon: ShoppingCart,
     tools: [
       { name: 'Shopify', logo: '/integrationsAssets/Shopify.svg' },
@@ -57,6 +62,7 @@ const groups: Group[] = [
     ],
   },
   {
+    id: 'calendars',
     icon: CalendarClock,
     tools: [
       { name: 'Google Calendar', logo: '/integrationsAssets/GoogleCalendar.svg' },
@@ -65,6 +71,7 @@ const groups: Group[] = [
     ],
   },
   {
+    id: 'messaging',
     icon: MessageSquare,
     tools: [
       { name: 'WhatsApp', logo: '/integrationsAssets/Whatsapp.svg' },
@@ -74,6 +81,7 @@ const groups: Group[] = [
     ],
   },
   {
+    id: 'helpdesk',
     icon: LifeBuoy,
     tools: [
       { name: 'Zendesk', logo: '/integrationsAssets/Zendesk.svg' },
@@ -81,9 +89,18 @@ const groups: Group[] = [
       { name: 'Freshdesk', icon: Headset },
     ],
   },
+  {
+    id: 'custom',
+    icon: Blocks,
+    tools: [
+      { name: 'REST APIs', icon: Code2 },
+      { name: 'Webhooks', icon: Webhook },
+      { name: 'In-house systems', icon: Database },
+    ],
+  },
 ];
 
-const customIcons: LucideIcon[] = [Code2, Webhook, Database];
+type CategoryCopy = { name: string; pitch: string; actions: string[]; toolNames?: string[] };
 
 const copy = {
   en: {
@@ -92,10 +109,46 @@ const copy = {
     titleAccent: 'any stack.',
     description:
       'Orders land in your POS, bookings in your calendar, leads in your CRM. Talkys works with the tools you already run, so nothing changes for your team except fewer missed calls.',
-    groups: ['CRM', 'POS & delivery', 'Commerce & payments', 'Calendars & booking', 'Messaging', 'Helpdesk'],
-    customTitle: 'Custom APIs & webhooks',
-    customText: 'Running something in-house? If it has an API, a webhook or a database, the agent can read from it and write to it.',
-    custom: ['REST APIs', 'Webhooks', 'In-house systems'],
+    tabsLabel: 'Integration categories',
+    tools: (n: number) => `${n} tools`,
+    categories: [
+      {
+        name: 'POS & delivery',
+        pitch: 'Orders taken on calls and chat go straight to the kitchen and the driver.',
+        actions: ['Orders sent to the kitchen', 'Orders and menu in sync', 'Orders and table status', 'Delivery orders and status', 'Delivery requests and tracking'],
+      },
+      {
+        name: 'CRM',
+        pitch: 'Every caller becomes a contact, every conversation a logged activity.',
+        actions: ['Leads, contacts and call logs', 'Contacts, deals and notes', 'Leads and follow-up tasks', 'Contacts and sales orders'],
+      },
+      {
+        name: 'Commerce & payments',
+        pitch: 'Checks stock, shares products and sends payment links mid-conversation.',
+        actions: ['Stock, orders and tracking', 'Products and order status', 'Payment links and receipts'],
+      },
+      {
+        name: 'Calendars & booking',
+        pitch: 'Books, moves and confirms appointments against your live availability.',
+        actions: ['Live availability and bookings', 'Booking links and reschedules', 'Event types and open slots'],
+      },
+      {
+        name: 'Messaging',
+        pitch: 'Answers and confirms on the apps your customers already use.',
+        actions: ['Chats, voice notes and confirmations', 'DMs and story replies', 'Bot conversations', 'Phone numbers and SMS'],
+      },
+      {
+        name: 'Helpdesk',
+        pitch: 'Opens a ticket with a summary whenever a person needs to step in.',
+        actions: ['Tickets with the full transcript', 'Conversations and handoff', 'Tickets and priorities'],
+      },
+      {
+        name: 'Custom APIs',
+        pitch: 'Running something in-house? If it has an API, a webhook or a database, the agent can read from it and write to it.',
+        actions: ['Read and write any endpoint', 'Push events to your systems', 'Databases and internal tools'],
+        toolNames: ['REST APIs', 'Webhooks', 'In-house systems'],
+      },
+    ] as CategoryCopy[],
     missing: 'Don’t see yours? We connect it during setup.',
     cta: 'Talk to us',
   },
@@ -105,29 +158,74 @@ const copy = {
     titleAccent: 'نظام تعمل عليه.',
     description:
       'الطلبات تصل إلى نظام نقاط البيع، والحجوزات إلى تقويمك، والعملاء المحتملون إلى نظام CRM. يعمل Talkys مع الأدوات التي تستخدمها أصلًا، فلا يتغيّر شيء على فريقك سوى عدد أقل من المكالمات الفائتة.',
-    groups: ['أنظمة CRM', 'نقاط البيع والتوصيل', 'التجارة والمدفوعات', 'التقويمات والحجوزات', 'المراسلة', 'الدعم الفني'],
-    customTitle: 'واجهات API مخصصة وWebhooks',
-    customText: 'لديك نظام داخلي خاص؟ إن كان يملك واجهة API أو Webhook أو قاعدة بيانات، يستطيع الوكيل القراءة منه والكتابة فيه.',
-    custom: ['واجهات REST API', 'Webhooks', 'الأنظمة الداخلية'],
+    tabsLabel: 'فئات التكاملات',
+    tools: (n: number) => `${n} أدوات`,
+    categories: [
+      {
+        name: 'نقاط البيع والتوصيل',
+        pitch: 'الطلبات التي تُستقبل عبر المكالمات والمحادثات تصل مباشرة إلى المطبخ والسائق.',
+        actions: ['الطلبات تصل إلى المطبخ', 'مزامنة الطلبات والقائمة', 'الطلبات وحالة الطاولات', 'طلبات التوصيل وحالتها', 'طلبات التوصيل وتتبّعها'],
+      },
+      {
+        name: 'أنظمة CRM',
+        pitch: 'كل متصل يصبح جهة اتصال، وكل محادثة نشاطاً مسجّلاً.',
+        actions: ['العملاء المحتملون وجهات الاتصال وسجل المكالمات', 'جهات الاتصال والصفقات والملاحظات', 'العملاء المحتملون ومهام المتابعة', 'جهات الاتصال وأوامر البيع'],
+      },
+      {
+        name: 'التجارة والمدفوعات',
+        pitch: 'يتحقّق من المخزون ويعرض المنتجات ويرسل روابط الدفع أثناء المحادثة.',
+        actions: ['المخزون والطلبات والتتبّع', 'المنتجات وحالة الطلبات', 'روابط الدفع والإيصالات'],
+      },
+      {
+        name: 'التقويمات والحجوزات',
+        pitch: 'يحجز المواعيد وينقلها ويؤكّدها وفق التوفّر الفعلي لديك.',
+        actions: ['التوفّر المباشر والحجوزات', 'روابط الحجز وإعادة الجدولة', 'أنواع المواعيد والأوقات المتاحة'],
+      },
+      {
+        name: 'المراسلة',
+        pitch: 'يرد ويؤكّد على التطبيقات التي يستخدمها عملاؤك أصلاً.',
+        actions: ['المحادثات والرسائل الصوتية والتأكيدات', 'الرسائل والردود على القصص', 'محادثات البوت', 'أرقام الهاتف والرسائل النصية'],
+      },
+      {
+        name: 'الدعم الفني',
+        pitch: 'يفتح تذكرة مع ملخص كلما احتاج الأمر إلى تدخّل موظف.',
+        actions: ['تذاكر مع النص الكامل للمحادثة', 'المحادثات والتحويل إلى الفريق', 'التذاكر والأولويات'],
+      },
+      {
+        name: 'واجهات API مخصصة',
+        pitch: 'لديك نظام داخلي خاص؟ إن كان يملك واجهة API أو Webhook أو قاعدة بيانات، يستطيع الوكيل القراءة منه والكتابة فيه.',
+        actions: ['قراءة وكتابة أي واجهة', 'إرسال الأحداث إلى أنظمتك', 'قواعد البيانات والأدوات الداخلية'],
+        toolNames: ['واجهات REST API', 'Webhooks', 'الأنظمة الداخلية'],
+      },
+    ] as CategoryCopy[],
     missing: 'لا تجد نظامك؟ نربطه لك خلال الإعداد.',
     cta: 'تحدّث إلينا',
   },
 };
 
-function ToolChip({ tool }: { tool: Tool }) {
+function ToolTile({ tool, name, action }: { tool: Tool; name: string; action: string }) {
   const Icon = tool.icon;
   return (
-    <li className="flex min-h-12 items-center gap-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3.5">
-      {tool.logo ? (
-        tool.wordmark ? (
-          <img src={tool.logo} alt={tool.name} loading="lazy" className="h-5 w-auto max-w-[110px] object-contain" />
+    <li className="flex flex-col rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] p-4 sm:p-5 transition-[border-color,box-shadow,transform] duration-200 ease-out-strong hover:-translate-y-0.5 hover:border-[var(--indigo-200)] hover:shadow-card">
+      <div className="flex h-12 items-center">
+        {tool.logo ? (
+          tool.wordmark ? (
+            <img src={tool.logo} alt={name} loading="lazy" className="h-6 w-auto max-w-full object-contain sm:h-7" />
+          ) : (
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-white">
+              <img src={tool.logo} alt="" width={28} height={28} loading="lazy" className="h-7 w-7 object-contain" />
+            </span>
+          )
         ) : (
-          <img src={tool.logo} alt="" width={24} height={24} loading="lazy" className="h-6 w-6 shrink-0 object-contain" />
-        )
-      ) : (
-        Icon && <Icon aria-hidden className="h-5 w-5 shrink-0 text-[var(--indigo-400)]" />
-      )}
-      {!tool.wordmark && <span className="text-sm font-medium leading-tight text-[var(--text-primary)]">{tool.name}</span>}
+          Icon && (
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--indigo-50)] text-[var(--indigo-500)]">
+              <Icon aria-hidden className="h-6 w-6" />
+            </span>
+          )
+        )}
+      </div>
+      <p className={cn('mt-4 font-display text-base font-semibold text-[var(--text-primary)]', tool.wordmark && 'sr-only')}>{name}</p>
+      <p className={cn('text-sm leading-snug text-[var(--text-muted)]', tool.wordmark ? 'mt-4' : 'mt-1')}>{action}</p>
     </li>
   );
 }
@@ -135,6 +233,29 @@ function ToolChip({ tool }: { tool: Tool }) {
 export function IntegrationsSection() {
   const t = useCopy(copy);
   const sectionRef = useReveal<HTMLElement>();
+  const [active, setActive] = useState(0);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const select = (index: number, focus = false) => {
+    setActive(index);
+    if (focus) tabRefs.current[index]?.focus();
+  };
+
+  // Vertical list on desktop, horizontal pills on mobile: accept both arrow axes.
+  const onTabKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const n = categories.length;
+    const rtl = document.documentElement.dir === 'rtl';
+    const next = { ArrowDown: 1, ArrowUp: -1, ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[event.key];
+    if (next !== undefined) select((active + next + n) % n, true);
+    else if (event.key === 'Home') select(0, true);
+    else if (event.key === 'End') select(n - 1, true);
+    else return;
+    event.preventDefault();
+  };
+
+  const category = categories[active];
+  const text = t.categories[active];
+  const CategoryIcon = category.icon;
 
   return (
     <section ref={sectionRef} id="integrations" className="relative py-20 lg:py-28">
@@ -150,49 +271,75 @@ export function IntegrationsSection() {
           description={t.description}
         />
 
-        <div data-reveal-group className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {groups.map(({ icon: Icon, tools }, index) => (
-            <article key={t.groups[index]} className="glass-panel-premium p-6">
-              <h3 className="flex items-center gap-2.5 font-display text-base font-semibold text-[var(--text-primary)]">
-                <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--indigo-50)] text-[var(--indigo-500)]">
-                  <Icon className="h-4 w-4" />
+        <div data-reveal className="mt-14 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8">
+          {/* Categories */}
+          <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 lg:overflow-visible">
+            <div role="tablist" aria-label={t.tabsLabel} className="flex w-max gap-2 lg:w-auto lg:flex-col lg:gap-1.5">
+              {categories.map((c, index) => {
+                const Icon = c.icon;
+                const selected = index === active;
+                return (
+                  <button
+                    key={c.id}
+                    ref={(el) => {
+                      tabRefs.current[index] = el;
+                    }}
+                    type="button"
+                    role="tab"
+                    id={`integration-tab-${c.id}`}
+                    aria-selected={selected}
+                    aria-controls="integration-panel"
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => select(index)}
+                    onKeyDown={onTabKey}
+                    className={cn(
+                      'group flex items-center gap-3 whitespace-nowrap rounded-full border px-4 py-2 text-start text-sm font-medium transition-[color,background-color,border-color,box-shadow] duration-200 ease-out-strong lg:rounded-xl lg:px-3.5 lg:py-3',
+                      selected
+                        ? 'border-[var(--indigo-200)] bg-white text-[var(--text-primary)] shadow-card'
+                        : 'border-[var(--border-color)] bg-white text-[var(--text-secondary)] hover:text-[var(--text-primary)] lg:border-transparent lg:bg-transparent lg:hover:bg-white/70'
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors duration-200',
+                        selected ? 'bg-[var(--blue-500)] text-white' : 'bg-[var(--indigo-50)] text-[var(--indigo-500)]'
+                      )}
+                    >
+                      <Icon aria-hidden className="h-4 w-4" />
+                    </span>
+                    <span className="flex-1">{t.categories[index].name}</span>
+                    <span className="hidden text-xs text-[var(--text-muted)] lg:inline">{t.tools(c.tools.length)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Logo wall */}
+          <div
+            id="integration-panel"
+            role="tabpanel"
+            aria-labelledby={`integration-tab-${category.id}`}
+            className="glass-panel-premium relative overflow-hidden p-6 sm:p-8"
+          >
+            <div className="hero-glow opacity-40" />
+            <div key={category.id} className="panel-swap relative">
+              <div className="flex items-start gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-cta" style={{ background: 'var(--cta-gradient)' }}>
+                  <CategoryIcon aria-hidden className="h-6 w-6" />
                 </span>
-                {t.groups[index]}
-              </h3>
-              <ul className="mt-5 grid grid-cols-2 gap-2">
-                {tools.map((tool) => (
-                  <ToolChip key={tool.name} tool={tool} />
+                <div>
+                  <h3 className="font-display text-xl font-semibold text-[var(--text-primary)] sm:text-2xl">{text.name}</h3>
+                  <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-[var(--text-secondary)]">{text.pitch}</p>
+                </div>
+              </div>
+              <ul className="mt-8 grid grid-cols-2 gap-3 xl:grid-cols-3">
+                {category.tools.map((tool, i) => (
+                  <ToolTile key={tool.name} tool={tool} name={text.toolNames?.[i] ?? tool.name} action={text.actions[i]} />
                 ))}
               </ul>
-            </article>
-          ))}
-
-          {/* Custom APIs & webhooks: spans the full row */}
-          <article className="glass-panel-premium relative overflow-hidden p-6 md:col-span-2 lg:col-span-3 lg:p-8">
-            <div className="hero-glow opacity-40" />
-            <div className="relative grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_auto]">
-              <div>
-                <h3 className="flex items-center gap-2.5 font-display text-lg font-semibold text-[var(--text-primary)]">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-lg text-white" style={{ background: 'var(--cta-gradient)' }}>
-                    <Blocks className="h-4 w-4" />
-                  </span>
-                  {t.customTitle}
-                </h3>
-                <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[var(--text-secondary)]">{t.customText}</p>
-              </div>
-              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                {t.custom.map((name, i) => {
-                  const Icon = customIcons[i];
-                  return (
-                    <li key={name} className="flex min-h-12 items-center gap-2.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3.5">
-                      <Icon aria-hidden className="h-5 w-5 shrink-0 text-[var(--indigo-400)]" />
-                      <span className="text-sm font-medium leading-tight text-[var(--text-primary)]">{name}</span>
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
-          </article>
+          </div>
         </div>
 
         <div data-reveal className="mt-12 flex flex-col items-center justify-center gap-4 text-center sm:flex-row">
