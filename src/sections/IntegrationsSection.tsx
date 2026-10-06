@@ -101,7 +101,7 @@ const categories: Category[] = [
 ];
 
 /** How long each category stays up while the section cycles on its own. */
-const AUTOPLAY_MS = 500;
+const AUTOPLAY_MS = 2000;
 
 type CategoryCopy = { name: string; pitch: string; actions: string[]; toolNames?: string[] };
 
