@@ -1,4 +1,4 @@
-name: Manual Deploy React App to S3 and CloudFront
+name: Manual Deploy Next.js static site to S3 and CloudFront
 
 on:
   workflow_dispatch:    
@@ -26,10 +26,9 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Build React app
+      - name: Build static site
         run: |
-          #echo "VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }}" >> .env
-          #cat .env
+          echo "NEXT_PUBLIC_WEB3FORMS_KEY=${{ vars.NEXT_PUBLIC_WEB3FORMS_KEY }}" >> .env.production
           npm run build
 
       - name: Configure AWS credentials
@@ -41,7 +40,7 @@ jobs:
 
       - name: Upload build files to S3
         run: |
-          aws s3 sync dist/ s3://${{ vars.S3_BUCKET }} \
+          aws s3 sync out/ s3://${{ vars.S3_BUCKET }} \
             --delete \
             --cache-control max-age=0,no-cache,no-store,must-revalidate
       - name: Invalidate CloudFront cache

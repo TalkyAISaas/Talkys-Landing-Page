@@ -1,25 +1,25 @@
-import { useLocale, useT } from '@/context/LocaleContext';
+'use client';
 
-export function LanguageSwitcher() {
+import { Languages } from 'lucide-react';
+import { useLocale } from '@/i18n/LocaleContext';
+import { cn } from '@/lib/utils';
+
+export function LanguageSwitcher({ className }: { className?: string }) {
   const { locale, toggleLocale } = useLocale();
-  const t = useT();
   const isAr = locale === 'ar';
 
   return (
     <button
+      type="button"
       onClick={toggleLocale}
-      aria-label={t('nav.languageSwitch')}
-      className="
-        w-10 h-10 rounded-full
-        bg-black/[0.05]
-        border border-black/[0.06]
-        flex items-center justify-center
-        hover:bg-black/[0.08]
-        transition-colors
-        text-xs font-semibold text-foreground/70
-      "
+      aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+      className={cn(
+        'inline-flex h-10 items-center gap-1.5 rounded-[10px] border border-[var(--border-color)] bg-white px-3 text-sm font-semibold text-[var(--text-secondary)] transition-[color,border-color,transform] duration-150 ease-out-strong hover:border-[var(--indigo-300)] hover:text-[var(--accent)] active:scale-[0.97]',
+        className
+      )}
     >
-      <span aria-hidden="true">{isAr ? 'EN' : 'AR'}</span>
+      <Languages aria-hidden className="h-4 w-4" />
+      <span lang={isAr ? 'en' : 'ar'}>{isAr ? 'EN' : 'عربي'}</span>
     </button>
   );
 }

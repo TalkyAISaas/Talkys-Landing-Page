@@ -1,146 +1,1127 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Talkys design tokens (cream · teal · coral), on the IZZI layout system.
+ * Light only. Scale names kept from the IZZI system: plum = coral, indigo = aqua, blue/electric = teal.
+ */
+:root {
+  /* Coral (replaces IZZI Plum) · 500 #E57756 */
+  --plum-50: #fdf3ef;
+  --plum-100: #fbe3da;
+  --plum-200: #f7c6b4;
+  --plum-300: #f5a585;
+  --plum-400: #ec8b69;
+  --plum-500: #e57756;
+  --plum-600: #cf5e3d;
+  --plum-700: #ab4a2f;
+  --plum-800: #843a26;
+  --plum-900: #5e2a1c;
+  --plum-950: #3a1911;
+
+  /* Aqua (replaces IZZI Royal Indigo) · 500 #1A8FA8 */
+  --indigo-50: #eff8fa;
+  --indigo-100: #d9eef3;
+  --indigo-200: #b0dce6;
+  --indigo-300: #7cc3d3;
+  --indigo-400: #45a7bd;
+  --indigo-500: #1a8fa8;
+  --indigo-600: #0f7690;
+  --indigo-700: #0f6478;
+  --indigo-800: #114f5e;
+  --indigo-900: #0f3b46;
+  --indigo-950: #08262d;
+
+  /* Talkys Teal (replaces IZZI Electric Blue) · 500 #0E4F5C */
+  --blue-50: #eef5f6;
+  --blue-100: #d5e7ea;
+  --blue-200: #a6cdd4;
+  --blue-300: #6aa9b5;
+  --blue-400: #2f7d8c;
+  --blue-500: #0e4f5c;
+  --blue-600: #0b4350;
+  --blue-700: #093843;
+  --blue-800: #082d36;
+  --blue-900: #06222a;
+  --blue-950: #04161b;
+
+  /* Data-viz sequence — assign in order; separated by lightness, not hue alone */
+  --viz-1: #0e4f5c;
+  --viz-2: #1a8fa8;
+  --viz-3: #e57756;
+  --viz-4: #dcd3ca;
+  --viz-5: #0b404b;
+  --viz-6: #f5a585;
+  --viz-7: #1f9e6e;
+  --viz-8: #c98a16;
+
+  /* Status (from the viz sequence) */
+  --viz-green: #1f9e6e;
+  --viz-green-soft: color-mix(in srgb, #1f9e6e 16%, transparent);
+  --viz-orange: #eab308;
+  --viz-orange-soft: color-mix(in srgb, #eab308 18%, transparent);
+  --viz-orange-text: #854d0e;
+  --viz-red: #dc2626;
+  --viz-red-soft: color-mix(in srgb, #dc2626 14%, transparent);
+  --viz-red-text: #b91c1c;
+
+  /* Semantic surface + type tokens (Talkys cream + navy) */
+  --bg-primary: #fdf9f5;
+  --bg-secondary: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-card: #ffffff;
+  --bg-sunken: #f7efe7;
+
+  --text-primary: #1a1f2e;
+  --text-secondary: #3f4556;
+  --text-muted: #6b7080;
+
+  --accent: #0e4f5c;
+  --accent-hover: #0b4350;
+  --accent-glow: rgba(14, 79, 92, 0.16);
+  --accent-secondary: #1a8fa8;
+  --accent-tertiary: #e57756;
+
+  /* Legacy names kept so older markup maps onto the palette */
+  --izzi-primary: #0e4f5c;
+  --izzi-primary-light: #156675;
+  --comp-ember-200: #f7c6b4;
+  --comp-ember-400: #e57756;
+  --comp-ember-600: #cf5e3d;
+  --comp-ember-soft: color-mix(in srgb, #e57756 12%, transparent);
+  --comp-execute-200: #a6cdd4;
+  --comp-execute-400: #1a8fa8;
+
+  --border-color: #ece3da;
+  --border-subtle: #f3ece5;
+  --border-strong: #dccfc2;
+
+  /* Brand gradients */
+  --cta-gradient: radial-gradient(130% 160% at 0% 100%, #f5a585 0%, #e57756 50%, #cf5e3d 100%);
+  --brand-rule: linear-gradient(90deg, #e57756 0%, #1a8fa8 55%, #0e4f5c 100%);
+  --brand-text: linear-gradient(100deg, #0e4f5c 0%, #156675 40%, #e57756 100%);
+
+  /* Elevation — shadows tinted with teal */
+  --shadow-sm: 0 1px 2px rgba(14, 79, 92, 0.05);
+  --shadow-card: 0 1px 2px rgba(14, 79, 92, 0.04), 0 8px 24px -8px rgba(14, 79, 92, 0.12);
+  --shadow-lift: 0 2px 4px rgba(14, 79, 92, 0.05), 0 16px 40px -12px rgba(14, 79, 92, 0.2);
+  --shadow-cta: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 8px 20px -6px rgba(229, 119, 86, 0.55);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --dur-press: 140ms;
+  --dur-ui: 200ms;
+
+  /* shadcn variables mapped to Talkys */
+  --background: 30 60% 97%;
+  --foreground: 224 26% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 224 26% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 26% 14%;
+  --primary: 190 74% 21%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 27 51% 94%;
+  --secondary-foreground: 224 26% 14%;
+  --muted: 27 51% 94%;
+  --muted-foreground: 225 9% 46%;
+  --accent-hsl: 14 73% 62%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 28 35% 89%;
+  --input: 28 35% 89%;
+  --ring: 190 74% 21%;
+  --radius: 1rem;
+
+  color-scheme: light;
+}
+
 @layer base {
-  :root {
-    --background: 30 60% 97%;
-    --bg-soft:    27 51% 94%;
-    --foreground: 224 26% 14%;
-    --card: 0 0% 100%;
-    --card-foreground: 224 26% 14%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 224 26% 14%;
-    --primary: 192 76% 21%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 27 51% 94%;
-    --secondary-foreground: 224 26% 14%;
-    --muted: 27 30% 92%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 14 71% 62%;
-    --accent-soft: 16 86% 73%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 0% / 0.06;
-    --input: 0 0% 0% / 0.06;
-    --ring: 14 71% 62%;
-    --radius: 1rem;
+  * {
+    @apply border-border;
   }
 
   html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Enabled after load (see Navigation) so deep links like /#contact jump instantly */
+  html.smooth-scroll {
     scroll-behavior: smooth;
-    overflow-x: hidden;
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', system-ui, sans-serif;
+    font-family: var(--font-inter), system-ui, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
     overflow-x: hidden;
-    width: 100%;
-    position: relative;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Outfit', 'IBM Plex Sans Arabic', 'Noto Sans Arabic', system-ui, sans-serif;
-    letter-spacing: -0.02em;
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--text-primary);
+    text-wrap: balance;
   }
 
-  html[dir='rtl'] body {
-    font-family: 'Noto Sans Arabic', 'Inter', system-ui, sans-serif;
+  p {
+    text-wrap: pretty;
   }
-  html[dir='rtl'] h1,
-  html[dir='rtl'] h2,
-  html[dir='rtl'] h3,
-  html[dir='rtl'] h4 {
-    font-family: 'Noto Sans Arabic', 'Outfit', system-ui, sans-serif;
-    letter-spacing: 0;
+
+  /* Arabic: swap to an Arabic face and drop Latin tracking */
+  html[dir="rtl"] body {
+    font-family: var(--font-arabic), var(--font-inter), system-ui, sans-serif;
+  }
+
+  html[dir="rtl"] :is(h1, h2, h3, h4, h5, h6, .font-display, .section-label) {
+    font-family: var(--font-arabic), var(--font-display), system-ui, sans-serif;
+  }
+
+  /* Tracking pulls Arabic letters apart and breaks their joins */
+  html[dir="rtl"] * {
+    letter-spacing: 0 !important;
+  }
+
+  html[dir="rtl"] .section-label {
+    font-size: 0.9375rem;
+  }
+
+
+  code, pre, .mono {
+    font-family: var(--font-ibm-plex-mono), ui-monospace, monospace;
+  }
+
+  section[id] {
+    scroll-margin-top: 88px;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--indigo-100);
+    color: var(--indigo-900);
   }
 }
 
 @layer components {
-  .chip-eyebrow {
-    @apply inline-flex items-center gap-2.5 bg-white border border-black/[0.06] px-3.5 py-1.5 rounded-lg text-[11.5px] font-semibold tracking-[0.22em] text-foreground;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-  }
-  .chip-eyebrow .bracket {
-    @apply text-accent font-bold text-[13px];
-  }
-
-  .accent-italic {
-    @apply text-accent italic;
+  /* Cards — solid surfaces with a hairline border and tinted shadow */
+  .glass-card,
+  .glass-panel-premium {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 1.25rem;
+    box-shadow: var(--shadow-card);
   }
 
-  .giant-headline {
-    @apply font-heading font-bold text-foreground;
-    font-size: clamp(48px, 8.5vw, 92px);
-    letter-spacing: -0.035em;
-    line-height: 1;
+  .card-interactive {
+    transition:
+      border-color var(--dur-ui) ease,
+      box-shadow var(--dur-ui) var(--ease-out),
+      transform var(--dur-ui) var(--ease-out);
   }
-  .section-headline {
-    @apply font-heading font-bold text-foreground;
-    font-size: clamp(34px, 5vw, 56px);
+
+  @media (hover: hover) and (pointer: fine) {
+    .card-interactive:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-lift);
+      transform: translateY(-2px);
+    }
+  }
+
+  /* Retired decorative layers from the previous direction */
+  .cinematic-grid,
+  .section-spotlight,
+  .ambient-orb {
+    display: none;
+  }
+
+  .noise-overlay::before {
+    content: none;
+  }
+
+  /* The one sanctioned glow: radial indigo/plum from the lower-left */
+  .hero-glow {
+    position: absolute;
+    pointer-events: none;
+    inset: 0;
+    background:
+      radial-gradient(55% 45% at 10% 78%, rgba(229, 119, 86, 0.13) 0%, transparent 70%),
+      radial-gradient(50% 50% at 30% 72%, rgba(14, 79, 92, 0.12) 0%, transparent 70%);
+    -webkit-mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 55%, transparent 100%);
+  }
+
+  .neon-ring {
+    box-shadow: var(--shadow-lift);
+    border: 1px solid var(--border-color);
+  }
+
+  .brand-rule {
+    height: 1px;
+    background: var(--brand-rule);
+  }
+
+  .gradient-text {
+    background: var(--brand-text);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Eyebrow label */
+  .section-label {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+
+  /* Brand CTA: radial gradient with the glow from the lower-left */
+  .btn-brand {
+    position: relative;
+    isolation: isolate;
+    background: var(--cta-gradient);
+    color: #fff;
+    box-shadow: var(--shadow-cta);
+  }
+
+  .btn-brand::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(120% 140% at 0% 100%, rgba(255, 255, 255, 0.18), transparent 60%);
+    opacity: 0;
+    transition: opacity var(--dur-ui) ease;
+    z-index: -1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .btn-brand:hover::after {
+      opacity: 1;
+    }
+
+    .marquee:hover .marquee-track {
+      animation-play-state: paused;
+    }
+  }
+
+  /* Seamless marquee — track holds two copies of the content */
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 40s linear infinite;
+  }
+
+  .marquee-mask {
+    mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  }
+
+  .avatar-img {
+    @apply w-full h-full object-cover rounded-full;
+  }
+
+  .data-table {
+    @apply w-full text-sm;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .data-table th {
+    @apply text-left py-3 px-4 font-mono text-xs uppercase tracking-wider;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .data-table td {
+    @apply py-3 px-4;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .data-table tr:hover td {
+    background: var(--indigo-50);
+  }
+
+  .closed-pill {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    background: var(--viz-green-soft);
+    color: #13714e;
+  }
+
+  /* Logo recoloured via mask so the PNG follows the text colour */
+  /* Talkys wordmark: text logo with a coral full stop */
+  .talkys-logo {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 700;
     letter-spacing: -0.03em;
-    line-height: 1.05;
-  }
-
-  .btn-coral {
-    @apply bg-accent text-white border-0 px-7 py-[15px] rounded-xl text-[15px] font-semibold cursor-pointer transition-transform;
-    box-shadow: 0 12px 30px -10px rgba(229,119,86,0.55);
-  }
-  .btn-coral:hover { transform: translateY(-2px); }
-
-  .btn-dark {
-    @apply bg-navy text-white border-0 px-7 py-[15px] rounded-xl text-[15px] font-semibold cursor-pointer transition-transform;
-  }
-  .btn-dark:hover { transform: translateY(-2px); }
-
-  .scribble {
-    @apply absolute flex items-end gap-1 pointer-events-none;
-    top: 100%;
-    left: 40px;
-    margin-top: 8px;
-  }
-  .scribble svg { width: 60px; height: 38px; flex-shrink: 0; }
-  .scribble .script {
-    @apply font-script text-accent;
-    font-size: 22px;
-    font-weight: 500;
-    white-space: nowrap;
-    transform: rotate(-3deg);
     line-height: 1;
+    direction: ltr;
+    unicode-bidi: isolate;
   }
 
-  html[dir='rtl'] .scribble {
-    left: auto;
-    right: 40px;
+  .talkys-logo-dot {
+    color: var(--plum-500);
+  }
+
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -3rem;
+    z-index: 100;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    background: var(--text-primary);
+    color: #fff;
+    transition: top var(--dur-ui) var(--ease-out);
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--indigo-200);
+    border-radius: 999px;
+    border: 2px solid var(--bg-primary);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--indigo-300);
   }
 }
 
 @layer utilities {
-  .text-balance { text-wrap: balance; }
-}
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  @keyframes dash-flow {
+    to { stroke-dashoffset: -24; }
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+@media (prefers-reduced-motion: reduce) {
+  html.smooth-scroll {
+    scroll-behavior: auto;
+  }
 
-::selection { background: rgba(229,119,86,0.25); color: inherit; }
+  .marquee-track,
+  .animate-dash-flow {
+    animation: none !important;
+  }
 
-button:focus-visible, a:focus-visible {
-  outline: 2px solid #e57756;
-  outline-offset: 2px;
+  .card-interactive:hover {
+    transform: none;
+  }
+}
+
+/* Hero entrance — CSS so it runs off the main thread and needs no JS to become visible */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes hero-in-media {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+  }
+}
+
+.hero-enter {
+  animation: hero-in 700ms var(--ease-out) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.hero-enter-media {
+  animation-name: hero-in-media;
+  animation-duration: 900ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter,
+  .hero-enter-media {
+    animation: fade-only 200ms ease both;
+  }
+
+  @keyframes fade-only {
+    from { opacity: 0; }
+  }
+}
+
+/* Tab panel swap — short blurred crossfade reads as one element changing */
+@keyframes panel-swap {
+  from {
+    opacity: 0;
+    filter: blur(2px);
+    transform: translateY(4px);
+  }
+}
+
+.panel-swap {
+  animation: panel-swap 240ms var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-swap {
+    animation: fade-only 160ms ease both;
+  }
+}
+
+/* Nav dropdowns — scale from the trigger (top-left), fast out */
+@keyframes nav-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+}
+
+@keyframes nav-out {
+  to {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.nav-dropdown {
+  transform-origin: top left;
+}
+
+.nav-dropdown[data-state='open'] {
+  animation: nav-in 180ms var(--ease-out);
+}
+
+.nav-dropdown[data-state='closed'] {
+  animation: nav-out 120ms var(--ease-out);
+}
+
+.nav-dropdown[data-instant] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-dropdown[data-state='open'],
+  .nav-dropdown[data-state='closed'] {
+    animation-name: fade-only;
+  }
+}
+
+/* Step chains cascade in once, the first time their panel is in view */
+@keyframes chain-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+[data-chain='pending'] [data-chain-step] {
+  opacity: 0;
+}
+
+[data-chain='play'] [data-chain-step] {
+  animation: chain-in 420ms var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms + 80ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-chain='play'] [data-chain-step] {
+    animation: fade-only 200ms ease both;
+    animation-delay: 0ms;
+  }
+}
+
+/* ───────────────────────── Capabilities scenes ─────────────────────────
+ * Icon illustrations that loop while the section is on screen (paused otherwise).
+ */
+.fx-stage {
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, var(--indigo-50) 100%);
+}
+.fx-stage-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(14, 79, 92, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(14, 79, 92, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 70% 70% at 50% 45%, #000 30%, transparent 80%);
+}
+
+.fx-blink { animation: fx-blink 1.6s ease-in-out infinite; }
+@keyframes fx-blink { 50% { opacity: 0.25; } }
+
+/* Voice */
+.fx-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid var(--indigo-300);
+  animation: fx-ping 1.8s var(--ease-out) infinite;
+}
+@keyframes fx-ping {
+  from { transform: scale(1); opacity: 0.7; }
+  to { transform: scale(2.1); opacity: 0; }
+}
+.fx-wave { display: flex; align-items: center; gap: 3px; height: 40px; }
+.fx-wave i {
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(var(--blue-400), var(--plum-400));
+  animation: fx-wave calc(0.7s + var(--i) * 0.06s) var(--ease-in-out) infinite alternate;
+  animation-delay: calc(var(--i) * -0.13s);
+}
+@keyframes fx-wave {
+  from { transform: scaleY(0.15); }
+  to { transform: scaleY(1); }
+}
+.fx-bubble {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 92%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  background: #fff;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+}
+.fx-bubble-a { animation: fx-bubble-a 7s var(--ease-out) infinite; }
+.fx-bubble-b { animation: fx-bubble-b 7s var(--ease-out) infinite; }
+@keyframes fx-bubble-a {
+  0% { opacity: 0; transform: translateY(6px); }
+  6%, 42% { opacity: 1; transform: none; }
+  48%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes fx-bubble-b {
+  0%, 48% { opacity: 0; transform: translateY(6px); }
+  54%, 92% { opacity: 1; transform: none; }
+  98%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+
+/* Video */
+.fx-scan {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 44%, rgba(255, 255, 255, 0.28) 50%, transparent 56%);
+  animation: fx-scan 3.2s linear infinite;
+}
+@keyframes fx-scan {
+  from { transform: translateY(-60%); }
+  to { transform: translateY(60%); }
+}
+.fx-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: var(--blue-400);
+  animation: fx-corner 1.4s var(--ease-in-out) infinite alternate;
+}
+@keyframes fx-corner {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+.fx-type {
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  animation: fx-type 6s linear infinite;
+}
+@keyframes fx-type {
+  0% { clip-path: inset(0 100% 0 0); opacity: 1; animation-timing-function: steps(42, end); }
+  45% { clip-path: inset(0 0 0 0); opacity: 1; }
+  90% { clip-path: inset(0 0 0 0); opacity: 1; }
+  97% { clip-path: inset(0 0 0 0); opacity: 0; }
+  100% { clip-path: inset(0 100% 0 0); opacity: 0; }
+}
+
+/* Multilingual */
+.fx-orbit { animation: fx-spin 28s linear infinite; }
+.fx-orbit-counter { animation: fx-spin 28s linear infinite reverse; }
+@keyframes fx-spin { to { transform: rotate(360deg); } }
+.fx-ticker-track { animation: fx-ticker 9s var(--ease-in-out) infinite; }
+@keyframes fx-ticker {
+  0%, 12.5% { transform: translateY(0); }
+  16.667%, 29.167% { transform: translateY(-20px); }
+  33.333%, 45.833% { transform: translateY(-40px); }
+  50%, 62.5% { transform: translateY(-60px); }
+  66.667%, 79.167% { transform: translateY(-80px); }
+  83.333%, 95.833% { transform: translateY(-100px); }
+  100% { transform: translateY(-120px); }
+}
+
+/* Compact card details */
+.fx-track-runner { animation: fx-run 3.2s var(--ease-in-out) infinite; }
+@keyframes fx-run {
+  0% { transform: translateX(0); }
+  80%, 100% { transform: translateX(100%); }
+}
+.fx-track-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--blue-500);
+  box-shadow: 0 0 0 4px rgba(14, 79, 92, 0.15), 0 0 12px rgba(14, 79, 92, 0.55);
+}
+.fx-node::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--blue-400);
+  box-shadow: 0 0 0 3px rgba(14, 79, 92, 0.12);
+  opacity: 0;
+  animation: fx-node 3.2s linear infinite;
+  animation-delay: calc(var(--n) * 2.56s);
+}
+@keyframes fx-node {
+  0% { opacity: 1; }
+  14%, 100% { opacity: 0; }
+}
+.fx-shimmer { position: relative; overflow: hidden; background: var(--indigo-100); }
+.fx-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(26, 143, 168, 0.75), transparent);
+  transform: translateX(-100%);
+  animation: fx-sweep 2.4s var(--ease-in-out) infinite;
+  animation-delay: calc(var(--i) * 0.18s);
+}
+@keyframes fx-sweep {
+  0% { transform: translateX(-100%); }
+  60%, 100% { transform: translateX(100%); }
+}
+.fx-bar {
+  background: linear-gradient(to top, var(--indigo-300), var(--blue-400));
+  transform-origin: bottom;
+  animation: fx-bar 2.6s var(--ease-in-out) infinite alternate;
+  animation-delay: calc(var(--i) * -0.3s);
+}
+@keyframes fx-bar {
+  from { transform: scaleY(0.45); }
+  to { transform: scaleY(1); }
+}
+
+/* Save work while off screen */
+.fx-scene:not([data-live]) *,
+.fx-scene:not([data-live]) *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-scene *,
+  .fx-scene *::after {
+    animation: none !important;
+  }
+  .fx-ping,
+  .fx-scan,
+  .fx-track-runner,
+  .fx-bubble-a { display: none; }
+  .fx-bubble-b { opacity: 1; }
+}
+
+/* ───────────────────────── Solutions: industry tiles + scenes ─────────────────────────
+ * Tiles cascade in once (40ms stagger; fill "backwards" so hover transitions own transform afterwards). Hover lift and the gradient icon fill are gated
+ * to fine pointers; press gives 0.98 feedback. Scene lines cycle every 3s.
+ */
+.ind-tile {
+  animation: hero-in 500ms var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms + 120ms);
+  transition:
+    transform 200ms var(--ease-out),
+    border-color 200ms ease,
+    box-shadow 200ms var(--ease-out);
+}
+.ind-tile:active { transform: scale(0.98); transition-duration: 120ms; }
+.ind-tile-icon { transition: background 200ms ease, color 200ms ease, transform 200ms var(--ease-out); }
+.ind-tile-arrow { opacity: 0; transform: translateX(-4px); transition: opacity 200ms ease, transform 200ms var(--ease-out); }
+[dir="rtl"] .ind-tile-arrow { transform: translateX(4px); }
+.ind-tile:focus-visible { outline: 2px solid var(--indigo-300); outline-offset: 2px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .ind-tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--indigo-200);
+    box-shadow: var(--shadow-card);
+  }
+  .ind-tile:hover .ind-tile-icon {
+    background: var(--cta-gradient);
+    color: #fff;
+    transform: scale(1.06);
+  }
+  .ind-tile:hover .ind-tile-arrow { opacity: 1; transform: none; }
+}
+
+.iv-line { opacity: 0; animation: iv-line 9s var(--ease-out) infinite; }
+@keyframes iv-line {
+  0% { opacity: 0; transform: translateY(6px); }
+  4%, 30% { opacity: 1; transform: none; }
+  34%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ind-tile { animation: fade-only 200ms ease backwards; animation-delay: 0ms; }
+  .iv-line:first-child { opacity: 1; }
+}
+
+/* ───────────────────────── Workflow automation: live run ─────────────────────────
+ * Steps go pending → running → done one after another; state changes are CSS
+ * transitions (interruptible), only the spinner/sweep loop. Still under reduced motion.
+ */
+.wf-badge {
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease;
+}
+.wf-card {
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    color 200ms ease,
+    box-shadow 200ms var(--ease-out),
+    opacity 200ms ease,
+    transform 200ms var(--ease-out);
+}
+
+/* idle (reduced motion) and done share the original resting look */
+.wf-step[data-state='idle'] .wf-badge,
+.wf-step[data-state='pending'] .wf-badge {
+  border-color: var(--indigo-200);
+  background: #fff;
+  color: var(--indigo-600);
+}
+.wf-step[data-state='idle'] .wf-card,
+.wf-step[data-state='done'] .wf-card {
+  border-color: var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.wf-step[data-state='pending'] .wf-card {
+  border-color: var(--border-subtle);
+  background: var(--bg-primary);
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+.wf-step[data-state='pending'] .wf-badge { color: var(--text-muted); border-color: var(--border-color); }
+
+.wf-step[data-state='running'] .wf-badge {
+  border-color: var(--indigo-300);
+  background: var(--indigo-50);
+  color: var(--indigo-600);
+}
+.wf-step[data-state='running'] .wf-badge::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  border-top-color: var(--indigo-500);
+  border-right-color: var(--plum-400);
+  animation: wf-spin 800ms linear infinite;
+}
+.wf-step[data-state='running'] .wf-card {
+  border-color: var(--indigo-200);
+  background: #fff;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
+  transform: translateX(4px);
+}
+.wf-step[data-state='running'] .wf-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(26, 143, 168, 0.18), transparent);
+  transform: translateX(-100%);
+  animation: wf-sweep 1.1s var(--ease-in-out) infinite;
+}
+
+.wf-step[data-state='done'] .wf-badge {
+  border-color: transparent;
+  /* Opaque tint (not the translucent --viz-green-soft) so the timeline passes behind the check */
+  background: color-mix(in srgb, var(--viz-green) 16%, #fff);
+  color: var(--viz-green);
+}
+.wf-check { animation: wf-pop 220ms var(--ease-out) both; }
+
+.wf-line-fill {
+  transform-origin: top;
+  transition: transform 600ms var(--ease-in-out);
+}
+.wf-tab-progress {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand-rule);
+  transform-origin: left;
+  transition: transform 600ms var(--ease-in-out);
+}
+.wf-done { animation: hero-in 260ms var(--ease-out) both; }
+
+@keyframes wf-spin { to { transform: rotate(360deg); } }
+@keyframes wf-sweep {
+  0% { transform: translateX(-100%); }
+  70%, 100% { transform: translateX(100%); }
+}
+@keyframes wf-pop {
+  from { opacity: 0; transform: scale(0.6); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wf-badge::before,
+  .wf-card::after { animation: none; }
+  .wf-check,
+  .wf-done { animation: none; }
+  .wf-card,
+  .wf-line-fill { transition: none; }
+}
+
+/* ───────────────────────── Why IZZI: four-step flow ─────────────────────────
+ * One pulse crosses the track in 3s (linear, constant motion) so it stays in sync with the steps, then rests 1s. Each step flashes as
+ * the pulse reaches it (delay = its position along the 3s run). Transform/opacity only.
+ */
+.cp-runner { animation: cp-run 4s linear infinite; }
+@keyframes cp-run {
+  0% { transform: translateX(0); opacity: 0; }
+  6% { opacity: 1; }
+  75% { transform: translateX(100%); opacity: 1; }
+  82%, 100% { transform: translateX(100%); opacity: 0; }
+}
+.cp-pulse {
+  position: absolute;
+  right: 100%;
+  top: -1px;
+  width: 56px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--indigo-400));
+}
+.cp-pulse::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--plum-500);
+  box-shadow: 0 0 0 4px rgba(229, 119, 86, 0.15), 0 0 12px rgba(229, 119, 86, 0.5);
+}
+
+/* Step lights up in the brand gradient as the pulse arrives, then settles */
+.cp-node::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: var(--cta-gradient);
+  opacity: 0;
+  animation: cp-lit 4s linear infinite;
+  animation-delay: calc(var(--i, 0) * 1s);
+}
+.cp-node svg { animation: cp-icon 4s linear infinite; animation-delay: calc(var(--i, 0) * 1s); }
+.cp-node { animation: cp-bump 4s var(--ease-out) infinite; animation-delay: calc(var(--i, 0) * 1s); }
+@keyframes cp-lit {
+  0% { opacity: 1; }
+  22%, 100% { opacity: 0; }
+}
+@keyframes cp-icon {
+  0% { color: #fff; }
+  22%, 100% { color: var(--indigo-500); }
+}
+@keyframes cp-bump {
+  0% { transform: scale(1.06); }
+  18%, 100% { transform: scale(1); }
+}
+
+.cp-scene:not([data-live]) .cp-runner,
+.cp-scene:not([data-live]) .cp-node,
+.cp-scene:not([data-live]) .cp-node::before,
+.cp-scene:not([data-live]) .cp-node svg {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-runner { display: none; }
+  .cp-node,
+  .cp-node::before,
+  .cp-node svg { animation: none; }
+}
+
+/* ───────────────────────── Platform architecture: agent builder ─────────────────────────
+ * Rows fill in once, one per 420ms (transitions only, so nothing restarts). Switching the
+ * example agent fades its values in 180ms with a 25ms chip stagger. Still under reduced motion.
+ */
+.arch-row {
+  transition: background-color 200ms ease, box-shadow 200ms var(--ease-out);
+}
+.arch-row-icon {
+  background: var(--indigo-50);
+  color: var(--indigo-400);
+  transition: background-color 200ms ease, color 200ms ease, transform 200ms var(--ease-out);
+}
+/* Dim not-yet-built layers only where the list sits beside the panel (desktop) */
+@media (min-width: 1024px) {
+  .arch-row[data-state='waiting'] { opacity: 0.55; transition: opacity 250ms ease, background-color 200ms ease; }
+}
+.arch-row[data-state='building'] { background: #fff; box-shadow: var(--shadow-card); }
+.arch-row[data-state='building'] .arch-row-icon,
+.arch-row[data-focus] .arch-row-icon {
+  background: var(--cta-gradient);
+  color: #fff;
+  transform: scale(1.05);
+}
+.arch-row[data-focus] { background: #fff; box-shadow: var(--shadow-card); }
+.arch-row:active { transform: scale(0.99); }
+.arch-row:focus-visible { outline: 2px solid var(--indigo-300); outline-offset: 2px; }
+
+.agent-row {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 320ms var(--ease-out),
+    background-color 200ms ease;
+}
+.agent-row[data-on] { opacity: 1; transform: none; }
+.agent-row[data-focus] { background: var(--indigo-50); }
+
+.agent-chip { animation: agent-chip-in 180ms var(--ease-out) backwards; animation-delay: calc(var(--v, 0) * 25ms); }
+.agent-swap { animation: agent-chip-in 180ms var(--ease-out) backwards; }
+@keyframes agent-chip-in {
+  from { opacity: 0; transform: translateY(3px); }
+}
+.agent-dot { animation: fx-blink 1.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-row { transition: none; }
+  .agent-chip,
+  .agent-swap,
+  .agent-dot { animation: none; }
+}
+
+/* ── Capabilities, second row: shared sequence helpers ──
+ * Items appear one after another (delay --d) and the loop repeats. Elements are visible by
+ * default; only the running animation hides them, so reduced motion shows the finished state.
+ */
+.fx-seq { animation: fx-seq 6s var(--ease-out) infinite both; animation-delay: var(--d, 0s); }
+@keyframes fx-seq {
+  0% { opacity: 0; transform: translateY(6px); }
+  8%, 80% { opacity: 1; transform: none; }
+  90%, 100% { opacity: 0; transform: none; }
+}
+
+/* Workflow run: each step lights up and ticks off in turn */
+.fx-wf-row { animation: fx-wf-row 4.8s ease infinite both; animation-delay: var(--d, 0s); }
+@keyframes fx-wf-row {
+  0%, 4% { opacity: 0.4; }
+  10%, 82% { opacity: 1; }
+  92%, 100% { opacity: 0.4; }
+}
+.fx-wf-check { animation: fx-wf-check 4.8s var(--ease-out) infinite both; animation-delay: var(--d, 0s); }
+@keyframes fx-wf-check {
+  0%, 4% { opacity: 0; transform: scale(0.6); }
+  12%, 82% { opacity: 1; transform: none; }
+  92%, 100% { opacity: 0; transform: none; }
+}
+
+/* Tool hub: each connected tool glows in turn */
+.fx-hub-chip::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid var(--blue-400);
+  box-shadow: 0 0 0 3px rgba(14, 79, 92, 0.14);
+  opacity: 0;
+  animation: fx-hub 3.2s linear infinite;
+  animation-delay: var(--d, 0s);
+}
+@keyframes fx-hub {
+  0% { opacity: 1; }
+  25%, 100% { opacity: 0; }
+}
+
+/* Solutions tiles: on hover the tile grows and its sector image opens beside the label.
+ * The image (same as the industry's section) reveals from the right edge with clip-path and
+ * settles from 1.08 scale; a soft mask fades it into the tile so the label stays readable.
+ * 260ms strong ease-out, fine pointers only; keyboard focus shows it too. */
+.ind-tile > *:not(.ind-tile-media) { position: relative; z-index: 1; }
+.ind-tile-media {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 44%;
+  pointer-events: none;
+  clip-path: inset(0 0 0 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 60%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 60%);
+  transition: clip-path 260ms var(--ease-out);
+}
+.ind-tile-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  transition: transform 260ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ind-tile:has(.ind-tile-media):hover,
+  .ind-tile:has(.ind-tile-media):focus-visible {
+    z-index: 10;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: var(--shadow-lift);
+  }
+  .ind-tile:hover .ind-tile-media,
+  .ind-tile:focus-visible .ind-tile-media { clip-path: inset(0 0 0 0); }
+  .ind-tile:hover .ind-tile-media img,
+  .ind-tile:focus-visible .ind-tile-media img { transform: scale(1); }
+  /* the arrow would sit on the photo; hide it on tiles that have one */
+  .ind-tile:has(.ind-tile-media):hover .ind-tile-arrow { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ind-tile-media { transition: none; }
+  .ind-tile-media img { transition: none; transform: none; }
 }

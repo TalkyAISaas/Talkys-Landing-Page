@@ -1,0 +1,57 @@
+/* ───────────────────────── Demo: sample call + scripted chat ───────────────────────── */
+.dm-wave {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 72px;
+}
+.dm-wave > span {
+  flex: 1;
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--plum-500), var(--plum-300));
+  transform: scaleY(0.12);
+  opacity: 0.45;
+  transition: transform 300ms var(--ease-out), opacity 300ms var(--ease-out);
+}
+.dm-wave[data-playing] > span {
+  opacity: 1;
+  animation: dm-wave 1s ease-in-out infinite;
+  animation-delay: calc(var(--k, 0) * -0.09s);
+}
+@keyframes dm-wave {
+  0%, 100% { transform: scaleY(0.2); }
+  50% { transform: scaleY(var(--h, 0.9)); }
+}
+
+.dm-bubble {
+  animation: dm-bubble 360ms var(--ease-out) both;
+}
+@keyframes dm-bubble {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+}
+
+.dm-typing > span {
+  animation: dm-typing 1.2s ease-in-out infinite;
+  animation-delay: calc(var(--k, 0) * 0.15s);
+}
+@keyframes dm-typing {
+  0%, 60%, 100% { opacity: 0.3; }
+  30% { opacity: 1; }
+}
+
+.dm-cue {
+  transition: opacity 250ms var(--ease-out), background-color 250ms var(--ease-out);
+}
+
+/* WhatsApp-style chat wallpaper (third-party brand colours) */
+.dm-chat-bg {
+  background-color: #efeae2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-wave[data-playing] > span { animation: none; transform: scaleY(0.6); }
+  .dm-bubble { animation: dm-fade 200ms ease both; }
+  .dm-typing > span { animation: none; }
+  @keyframes dm-fade { from { opacity: 0; } }
+}

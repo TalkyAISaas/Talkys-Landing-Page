@@ -1,0 +1,28 @@
+/* ───────────────────────── How it works: one call, start to finish ─────────────────────────
+ * Transcript lines and "behind the call" events switch on one after another (data-on, driven by
+ * a timer in HowItWorksSection). Transitions only, so nothing restarts mid-cycle. Under reduced
+ * motion every item is shown at once and nothing moves.
+ */
+.hiw-item {
+  opacity: 0;
+  transform: translateY(6px);
+  transition:
+    opacity 320ms var(--ease-out),
+    transform 320ms var(--ease-out);
+}
+.hiw-item[data-on] { opacity: 1; transform: none; }
+
+.hiw-event-icon {
+  background: var(--indigo-50);
+  color: var(--indigo-400);
+  transition: background-color 200ms ease, color 200ms ease;
+}
+.hiw-event[data-latest] .hiw-event-icon {
+  background: var(--cta-gradient);
+  color: #fff;
+}
+.hiw-event[data-latest] { box-shadow: var(--shadow-card); border-color: var(--plum-200); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hiw-item { transition: none; opacity: 1; transform: none; }
+}

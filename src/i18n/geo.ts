@@ -1,4 +1,4 @@
-import type { Locale } from './types';
+import type { Locale } from './LocaleContext';
 
 export const ARABIC_COUNTRIES = new Set<string>([
   'LB', 'SA', 'AE', 'EG', 'JO', 'KW', 'QA', 'BH', 'OM',
