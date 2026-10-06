@@ -1,0 +1,60 @@
+/* Channels section: tab swap, message reveal, call equalizer and autoplay progress. */
+
+.ch-swap {
+  animation: ch-swap 420ms var(--ease-out) both;
+}
+@keyframes ch-swap {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.ch-item {
+  animation: ch-item 380ms var(--ease-out) both;
+}
+@keyframes ch-item {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+.ch-progress {
+  transform-origin: left;
+  animation: ch-progress 7000ms linear both;
+}
+[dir="rtl"] .ch-progress {
+  transform-origin: right;
+}
+@keyframes ch-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.ch-live {
+  animation: ch-live 1.4s ease-in-out infinite;
+}
+@keyframes ch-live {
+  50% { opacity: 0.3; }
+}
+
+.ch-eq span {
+  display: block;
+  width: 3px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--indigo-400);
+  transform-origin: center;
+  animation: ch-eq 0.9s ease-in-out infinite alternate;
+}
+@keyframes ch-eq {
+  from { transform: scaleY(0.2); }
+  to { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-swap,
+  .ch-item,
+  .ch-progress,
+  .ch-live,
+  .ch-eq span {
+    animation: none;
+  }
+}
