@@ -274,7 +274,6 @@ function IndustryFeature({ index, item }: { index: number; item: Industry }) {
   const ref = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [inView, setInView] = useState(false);
-  const [paused, setPaused] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
   const [reduced, setReduced] = useState(false);
   const [tick, setTick] = useState(0);
@@ -298,7 +297,7 @@ function IndustryFeature({ index, item }: { index: number; item: Industry }) {
     return () => io.disconnect();
   }, []);
 
-  const running = autoplay && inView && !paused && !reduced;
+  const running = autoplay && inView && !reduced;
   useEffect(() => {
     if (!running) return;
     const id = window.setTimeout(() => setTick((k) => k + 1), TICK_MS);
@@ -323,8 +322,6 @@ function IndustryFeature({ index, item }: { index: number; item: Industry }) {
       ref={ref}
       id={v.id}
       data-visible={visible || undefined}
-      onPointerEnter={() => setPaused(true)}
-      onPointerLeave={() => setPaused(false)}
       className="uc-section scroll-mt-28 overflow-hidden rounded-[28px] border border-[var(--border-color)] bg-white shadow-card"
     >
       <div className="grid lg:grid-cols-2">
