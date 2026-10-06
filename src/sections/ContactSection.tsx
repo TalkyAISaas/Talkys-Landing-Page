@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 
 const WEB3FORMS_ENDPOINT = 'https://api.web3forms.com/submit';
 const CC_RECIPIENTS = 'ali.fakih@rentallsoftware.com, ali.alfakih@ssupworld.com';
+// Web3Forms access keys are public by design (they ship in the browser bundle); the env var can override it.
+const DEFAULT_WEB3FORMS_KEY = '8dfe5049-c5e5-4b24-8d3e-12d6862268fa';
 const CONTACT_EMAIL = 'hello@talkys.ai';
 const GEO_ENDPOINT = 'https://api.country.is';
 
@@ -239,7 +241,7 @@ export function ContactSection() {
       return;
     }
 
-    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY;
+    const accessKey = process.env.NEXT_PUBLIC_WEB3FORMS_KEY || DEFAULT_WEB3FORMS_KEY;
     if (!accessKey) {
       console.error('[contact] NEXT_PUBLIC_WEB3FORMS_KEY is not set; the demo form cannot submit.');
       setErrors({ submit: process.env.NODE_ENV === 'development' ? t.errors.notConfigured : t.errors.submit });
