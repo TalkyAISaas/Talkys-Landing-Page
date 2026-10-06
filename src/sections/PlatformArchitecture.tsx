@@ -181,7 +181,7 @@ const copy: { en: typeof en; ar: typeof en } = {
 };
 
 const LAYER_COUNT = layerIcons.length;
-const CYCLE_MS = 2400;
+const CYCLE_MS = 500;
 
 export function PlatformArchitecture() {
   const t = useCopy(copy);
