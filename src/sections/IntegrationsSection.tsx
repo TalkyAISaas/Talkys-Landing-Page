@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -99,6 +99,9 @@ const categories: Category[] = [
     ],
   },
 ];
+
+/** How long each category stays up while the section cycles on its own. */
+const AUTOPLAY_MS = 500;
 
 type CategoryCopy = { name: string; pitch: string; actions: string[]; toolNames?: string[] };
 
@@ -235,8 +238,38 @@ export function IntegrationsSection() {
   const sectionRef = useReveal<HTMLElement>();
   const [active, setActive] = useState(0);
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const [autoplay, setAutoplay] = useState(true);
+  const [inView, setInView] = useState(false);
+  const [paused, setPaused] = useState(false);
+
+  // Cycle only while on screen and not hovered or focused; never under reduced motion.
+  useEffect(() => {
+    const el = stageRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!autoplay || !inView || paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setTimeout(() => setActive((i) => (i + 1) % categories.length), AUTOPLAY_MS);
+    return () => window.clearTimeout(id);
+  }, [active, autoplay, inView, paused]);
+
+  // On mobile the pills scroll sideways: keep the active one centred as it cycles.
+  useEffect(() => {
+    const tab = tabRefs.current[active];
+    const scroller = tab?.closest<HTMLElement>('.overflow-x-auto');
+    if (!tab || !scroller || scroller.scrollWidth <= scroller.clientWidth) return;
+    const t = tab.getBoundingClientRect();
+    const s = scroller.getBoundingClientRect();
+    scroller.scrollBy({ left: t.left + t.width / 2 - (s.left + s.width / 2), behavior: 'smooth' });
+  }, [active]);
 
   const select = (index: number, focus = false) => {
+    setAutoplay(false);
     setActive(index);
     if (focus) tabRefs.current[index]?.focus();
   };
@@ -271,7 +304,15 @@ export function IntegrationsSection() {
           description={t.description}
         />
 
-        <div data-reveal className="mt-14 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8">
+        <div
+          ref={stageRef}
+          data-reveal
+          onPointerEnter={() => setPaused(true)}
+          onPointerLeave={() => setPaused(false)}
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+          className="mt-14 grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)] lg:gap-8"
+        >
           {/* Categories */}
           <div className="-mx-4 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 lg:overflow-visible">
             <div role="tablist" aria-label={t.tabsLabel} className="flex w-max gap-2 lg:w-auto lg:flex-col lg:gap-1.5">
