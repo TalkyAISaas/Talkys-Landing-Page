@@ -47,9 +47,9 @@ const CHANNELS: { id: string; icon: LucideIcon; kind: Kind; header: string }[] =
   { id: 'email', icon: Mail, kind: 'email', header: 'var(--blue-500)' },
 ];
 
-const AUTOPLAY_MS = 500;
+const AUTOPLAY_MS = 2000;
 // Seconds between messages: quick while cycling so each conversation fits its slot, relaxed once a visitor picks a channel.
-const STAGGER_AUTO = 0.05;
+const STAGGER_AUTO = 0.25;
 const STAGGER_PICKED = 0.55;
 
 const copy = {
