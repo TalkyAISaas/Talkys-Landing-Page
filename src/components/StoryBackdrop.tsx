@@ -5,9 +5,9 @@ import { useCopy } from '@/i18n/LocaleContext';
 
 /**
  * Cinematic homepage backdrop. One field of light particles tells the Talkys story as the
- * page scrolls: it awakens as a core, listens as sound waves, understands as a network,
- * structures itself into layers, acts as flowing streams, reaches everywhere as a globe
- * and settles into a halo. Each chapter is tied to the section on screen; the particles
+ * page scrolls: it says hello as a chat bubble with typing dots, listens as a radial
+ * equalizer, converses as two chat bubbles, builds itself into a turning cube, acts as a
+ * flowing double helix, reaches everywhere as a torus and settles into a checkmark. Each chapter is tied to the section on screen; the particles
  * glide between formations with inertia and leave short motion trails.
  *
  * Canvas 2D, transparent over the white page. Under reduced motion it draws still
@@ -29,8 +29,8 @@ const CHAPTERS = [
 ] as const;
 
 const copy = {
-  en: { chapters: ['Awaken', 'Listen', 'Understand', 'Structure', 'Act', 'Everywhere', 'Outcome'] },
-  ar: { chapters: ['انطلاق', 'إصغاء', 'فهم', 'تنظيم', 'تنفيذ', 'في كل مكان', 'نتيجة'] },
+  en: { chapters: ['Hello', 'Listen', 'Converse', 'Build', 'Act', 'Everywhere', 'Done'] },
+  ar: { chapters: ['مرحباً', 'إصغاء', 'حوار', 'بناء', 'تنفيذ', 'في كل مكان', 'تمّ'] },
 };
 
 /** Light layers and particle colours come from the brand tokens in index.css. */
@@ -95,107 +95,152 @@ function rotateX(v: Vec, a: number): Vec {
   return { x: v.x, y: v.y * c - v.z * s, z: v.y * s + v.z * c };
 }
 
+type Pt = [number, number];
+
+/** Arc-length sampler over a polyline: u in 0..1 maps evenly along its length. */
+function polyline(points: Pt[], closed: boolean) {
+  const pts = closed ? [...points, points[0]] : points;
+  const cum = [0];
+  for (let k = 1; k < pts.length; k++) cum.push(cum[k - 1] + Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]));
+  const total = cum[cum.length - 1];
+  return (u: number): Pt => {
+    const d = frac(u) * total;
+    let k = 1;
+    while (k < cum.length - 1 && cum[k] < d) k++;
+    const f = (d - cum[k - 1]) / (cum[k] - cum[k - 1] || 1);
+    return [pts[k - 1][0] + (pts[k][0] - pts[k - 1][0]) * f, pts[k - 1][1] + (pts[k][1] - pts[k - 1][1]) * f];
+  };
+}
+
+/** Outline of a chat bubble: a rounded rectangle with a tail on its bottom edge (y grows downward). */
+function bubbleOutline(hw: number, hh: number, radius: number, tailSide: 1 | -1): Pt[] {
+  const pts: Pt[] = [];
+  const corner = (cx: number, cy: number, from: number) => {
+    for (let k = 0; k <= 6; k++) {
+      const ang = from + (k / 6) * (Math.PI / 2);
+      pts.push([cx + Math.cos(ang) * radius, cy + Math.sin(ang) * radius]);
+    }
+  };
+  corner(hw - radius, hh - radius, 0); // bottom-right, then along the bottom edge leftwards
+  const tx = tailSide * hw * 0.45;
+  pts.push([tx + 0.13, hh], [tx + tailSide * 0.1, hh + 0.24], [tx - 0.13, hh]);
+  corner(-hw + radius, hh - radius, Math.PI / 2); // bottom-left
+  corner(-hw + radius, -hh + radius, Math.PI); // top-left
+  corner(hw - radius, -hh + radius, (Math.PI * 3) / 2); // top-right
+  return pts;
+}
+
+/** The twelve edges of an axis-aligned cube with half-size `h`. */
+function cubeEdges(h: number): [Vec, Vec][] {
+  const v = (x: number, y: number, z: number): Vec => ({ x: x * h, y: y * h, z: z * h });
+  const edges: [Vec, Vec][] = [];
+  for (const a of [-1, 1]) {
+    for (const b of [-1, 1]) {
+      edges.push([v(-1, a, b), v(1, a, b)], [v(a, -1, b), v(a, 1, b)], [v(a, b, -1), v(a, b, 1)]);
+    }
+  }
+  return edges;
+}
+
 function buildFormations(count: number) {
   const rand = mulberry32(7);
   const seeds = Array.from({ length: count }, () => ({ a: rand(), b: rand(), c: rand(), d: rand() }));
-
-  // Network nodes and their links (each node joins its two nearest neighbours).
-  const NODE_COUNT = Math.min(64, Math.floor(count / 3));
-  const nodes: Vec[] = Array.from({ length: NODE_COUNT }, () => {
-    const ang = rand() * Math.PI * 2;
-    const rad = Math.sqrt(rand());
-    return { x: Math.cos(ang) * rad * 1.35, y: Math.sin(ang) * rad * 0.62, z: rand() * 1.6 - 0.8 };
-  });
-  const links: [number, number][] = [];
-  nodes.forEach((n, i) => {
-    const nearest = nodes
-      .map((m, j) => ({ j, d: (m.x - n.x) ** 2 + (m.y - n.y) ** 2 }))
-      .filter((e) => e.j !== i)
-      .sort((p, q) => p.d - q.d)
-      .slice(0, 2);
-    nearest.forEach(({ j }) => {
-      if (!links.some(([p, q]) => (p === j && q === i) || (p === i && q === j))) links.push([i, j]);
-    });
-  });
-
   const golden = Math.PI * (3 - Math.sqrt(5));
 
-  // Awaken: a slowly turning three-arm spiral, like a galaxy forming.
-  const core: Formation = (i, t, aspect) => {
+  // Hello: one chat bubble, particles drifting along its outline, typing dots bobbing inside.
+  const bigBubble = polyline(bubbleOutline(0.78, 0.44, 0.24, -1), true);
+  const hello: Formation = (i, t) => {
     const s = seeds[i];
-    const arm = i % 3;
-    const r = 0.12 + Math.pow(s.a, 0.75) * Math.min(aspect, 1.6) * 0.78;
-    const ang = arm * ((Math.PI * 2) / 3) + r * 3.4 + t * 0.07 + (s.b - 0.5) * (0.35 + r * 0.25);
-    const p = { x: Math.cos(ang) * r, y: (s.c - 0.5) * 0.05, z: Math.sin(ang) * r };
-    return rotateX(p, 1.15);
+    let p: Vec;
+    if (i % 4 === 0) {
+      const k = Math.floor(i / 4) % 3;
+      const ang = s.a * Math.PI * 2;
+      const r = Math.sqrt(s.b) * 0.055;
+      const bob = Math.max(0, Math.sin(t * 4 - k * 0.9)) * 0.07;
+      p = { x: (k - 1) * 0.26 + Math.cos(ang) * r, y: -bob + Math.sin(ang) * r, z: (s.c - 0.5) * 0.06 };
+    } else {
+      const [x, y] = bigBubble(i / count + t * 0.015);
+      p = { x: x + (s.b - 0.5) * 0.025, y: y + (s.c - 0.5) * 0.025, z: (s.a - 0.5) * 0.08 };
+    }
+    return rotateX(rotateY(p, Math.sin(t * 0.3) * 0.35), 0.12);
   };
 
-  const wave: Formation = (i, t, aspect) => {
-    const lines = 5;
-    const k = i % lines;
-    const u = (Math.floor(i / lines) / Math.ceil(count / lines)) * 2 - 1; // -1..1 along the line
-    const x = u * aspect * 1.05;
-    const envelope = Math.pow(Math.cos((u * Math.PI) / 2), 1.4);
-    const y = Math.sin(u * 7 + t * 1.6 + k * 0.7) * 0.22 * envelope + (k - 2) * 0.045;
-    return { x, y, z: (k - 2) * 0.25 };
+  // Listen: a radial equalizer, its spokes pulsing like a voice.
+  const SPOKES = 56;
+  const perSpoke = Math.ceil(count / SPOKES);
+  const listen: Formation = (i, t) => {
+    const k = i % SPOKES;
+    const m = Math.floor(i / SPOKES) / Math.max(perSpoke - 1, 1);
+    const level = Math.abs(Math.sin(t * 2.3 + k * 0.55) * Math.sin(t * 1.1 + k * 0.21));
+    const r = 0.3 + m * (0.06 + level * 0.36);
+    const ang = (k / SPOKES) * Math.PI * 2 + t * 0.05;
+    return rotateX({ x: Math.cos(ang) * r, y: Math.sin(ang) * r, z: 0 }, 0.25);
   };
 
-  const network: Formation = (i, t) => {
+  // Converse: two chat bubbles, customer and agent, floating opposite each other.
+  const leftBubble = polyline(bubbleOutline(0.42, 0.24, 0.14, -1), true);
+  const rightBubble = polyline(bubbleOutline(0.42, 0.24, 0.14, 1), true);
+  const half = Math.ceil(count / 2);
+  const converse: Formation = (i, t) => {
     const s = seeds[i];
-    const n = nodes[i % NODE_COUNT];
-    const isNode = i < NODE_COUNT;
-    const spread = isNode ? 0 : 0.05 + s.a * 0.09;
-    const ang = s.b * Math.PI * 2 + t * 0.3 * (s.c - 0.5);
+    const side = i % 2;
+    const [x, y] = (side ? rightBubble : leftBubble)(Math.floor(i / 2) / half + t * 0.02);
+    const float = Math.sin(t * 0.8 + side * Math.PI) * 0.03;
     return {
-      x: n.x + Math.cos(ang) * spread + Math.sin(t * 0.5 + i) * 0.01,
-      y: n.y + Math.sin(ang) * spread + Math.cos(t * 0.4 + i) * 0.01,
-      z: n.z,
+      x: x + (side ? 0.4 : -0.4) + (s.b - 0.5) * 0.02,
+      y: y + (side ? 0.2 : -0.22) + float + (s.c - 0.5) * 0.02,
+      z: (side ? 0.15 : -0.15) + (s.a - 0.5) * 0.05,
     };
   };
 
-  // Structure: stacked dot-grid slabs (the platform's layers), gently turning.
-  const perLayer = Math.ceil(count / 5);
-  const cols = Math.ceil(Math.sqrt(perLayer * 3));
-  const rows = Math.ceil(perLayer / cols);
-  const stack: Formation = (i, t, aspect) => {
-    const k = i % 5;
-    const j = Math.floor(i / 5);
-    const u = ((j % cols) / Math.max(cols - 1, 1)) * 2 - 1;
-    const v = (Math.floor(j / cols) / Math.max(rows - 1, 1)) * 2 - 1;
-    // Kept flat (slab height ~0.22) so the five layers stay visibly separate (gap 0.3).
-    const p = rotateY({ x: u * Math.min(aspect, 1.5) * 0.62, y: 0, z: v * 0.2 }, 0.06 + Math.sin(t * 0.18) * 0.05);
-    const tilted = rotateX(p, 0.3);
-    return { x: tilted.x, y: tilted.y + (k - 2) * 0.3 + Math.sin(t * 0.9 + k) * 0.012, z: tilted.z };
+  // Build: a wireframe cube with a smaller one turning the other way inside it.
+  const edges = [...cubeEdges(0.46), ...cubeEdges(0.22)];
+  const perEdge = Math.ceil(count / edges.length);
+  const build: Formation = (i, t) => {
+    const e = i % edges.length;
+    const u = Math.floor(i / edges.length) / Math.max(perEdge - 1, 1);
+    const [p0, p1] = edges[e];
+    const p = { x: p0.x + (p1.x - p0.x) * u, y: p0.y + (p1.y - p0.y) * u, z: p0.z + (p1.z - p0.z) * u };
+    const spin = e >= 12 ? -1 : 1;
+    return rotateX(rotateY(p, spin * t * 0.25 + 0.6), 0.55);
   };
 
-  const stream: Formation = (i, t, aspect) => {
+  // Act: a double helix of data flowing across the screen, with rungs between the strands.
+  const act: Formation = (i, t, aspect) => {
     const s = seeds[i];
-    const lanes = 3;
-    const k = i % lanes;
-    const prog = frac(s.a + t * (0.05 + s.b * 0.03));
-    const x = (prog * 2 - 1) * aspect * 1.15;
-    const y = Math.sin(x * 1.3 + k * 0.9) * 0.22 + (k - 1) * 0.09 + (s.c - 0.5) * 0.035;
-    return { x, y, z: (k - 1) * 0.35 };
+    const x = (frac(s.a + t * 0.035) * 2 - 1) * aspect * 1.1;
+    const ang = x * 3.4 + t * 1.1;
+    const k = i % 6 === 0 ? s.b * 2 - 1 : i % 2 ? 1 : -1;
+    return { x, y: Math.cos(ang) * 0.24 * k, z: Math.sin(ang) * 0.22 * k };
   };
 
-  const globe: Formation = (i, t) => {
-    const y = 1 - (i / (count - 1)) * 2;
-    const rr = Math.sqrt(1 - y * y);
-    const theta = golden * i;
-    const p = { x: Math.cos(theta) * rr * 0.62, y: y * 0.62, z: Math.sin(theta) * rr * 0.62 };
-    return rotateX(rotateY(p, t * 0.22), 0.35);
+  // Everywhere: a turning torus.
+  const everywhere: Formation = (i, t) => {
+    const theta = (i / count) * Math.PI * 2;
+    const phi = i * golden;
+    const ring = 0.5 + 0.19 * Math.cos(phi);
+    const p = { x: ring * Math.cos(theta), y: 0.19 * Math.sin(phi), z: ring * Math.sin(theta) };
+    return rotateX(rotateY(p, t * 0.22), 1.05);
   };
 
-  const halo: Formation = (i, t) => {
+  // Done: a ring with a checkmark inside it.
+  const check = polyline([[-0.28, 0], [-0.08, 0.2], [0.3, -0.2]], false);
+  const third = Math.ceil(count / 3);
+  const done: Formation = (i, t) => {
     const s = seeds[i];
-    const ring = i % 5 !== 0;
-    const ang = (i / count) * Math.PI * 2 * 3 + t * 0.1;
-    const r = ring ? 0.66 + (s.a - 0.5) * 0.06 : s.a * 0.4;
-    const p = { x: Math.cos(ang) * r * 1.25, y: ring ? 0 : (s.b - 0.5) * 0.2, z: Math.sin(ang) * r };
-    return rotateX(p, 0.38);
+    let p: Vec;
+    if (i % 3 === 0) {
+      const [x, y] = check(Math.floor(i / 3) / third);
+      p = { x: x + (s.b - 0.5) * 0.03, y: y + (s.c - 0.5) * 0.03, z: 0 };
+    } else {
+      const ang = (i / count) * Math.PI * 2 + t * 0.08;
+      const r = 0.6 + (s.a - 0.5) * 0.05;
+      p = { x: Math.cos(ang) * r, y: Math.sin(ang) * r, z: (s.b - 0.5) * 0.05 };
+    }
+    return rotateY(p, Math.sin(t * 0.35) * 0.3);
   };
 
-  return { formations: [core, wave, network, stack, stream, globe, halo], seeds, links };
+  return { formations: [hello, listen, converse, build, act, everywhere, done], seeds };
 }
 
 export function StoryBackdrop() {
@@ -221,9 +266,8 @@ export function StoryBackdrop() {
 
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const count = window.innerWidth < 768 ? 180 : 320;
-    const { formations, seeds, links } = buildFormations(count);
+    const { formations, seeds } = buildFormations(count);
     const COLORS = COLOR_TOKENS.map(tokenRgb);
-    const linkRgb = tokenRgb('--indigo-500').join(',');
 
     let width = 0;
     let height = 0;
@@ -330,19 +374,6 @@ export function StoryBackdrop() {
         xs[i] = cx + x * S * persp;
         ys[i] = cy + y * S * persp;
         zs[i] = z;
-      }
-
-      // Network links fade in around the "Understand" chapter.
-      const linkAlpha = clamp01(1 - Math.abs(phase - 2) * 2.2);
-      if (linkAlpha > 0.01) {
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = `rgba(${linkRgb},${(0.16 * linkAlpha).toFixed(3)})`;
-        ctx.beginPath();
-        for (const [i, j] of links) {
-          ctx.moveTo(xs[i], ys[i]);
-          ctx.lineTo(xs[j], ys[j]);
-        }
-        ctx.stroke();
       }
 
       // Particles as short streaks from where they were last frame (a still particle is a

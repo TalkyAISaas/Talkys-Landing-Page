@@ -299,7 +299,7 @@ function VoiceDemo({ industry, t }: { industry: DemoIndustry; t: Copy }) {
 
         <div className="dm-wave mt-6" data-playing={playing || undefined} aria-hidden>
           {Array.from({ length: 36 }, (_, k) => (
-            <span key={k} style={{ '--k': k, '--h': 0.45 + 0.55 * Math.abs(Math.sin(k * 1.7)) } as CSSProperties} />
+            <span key={k} style={{ '--k': String(k), '--h': (0.45 + 0.55 * Math.abs(Math.sin(k * 1.7))).toFixed(3) } as CSSProperties} />
           ))}
         </div>
 
