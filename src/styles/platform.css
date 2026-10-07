@@ -52,13 +52,13 @@
   border: 1px solid color-mix(in srgb, var(--indigo-300) 55%, transparent);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.92), color-mix(in srgb, var(--indigo-50) 80%, transparent));
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 18px 30px -18px rgba(14, 79, 92, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 18px 30px -18px rgba(11, 23, 38, 0.35);
   transition: border-color 300ms ease, box-shadow 300ms ease, background 300ms ease;
 }
 .pf-slab[data-active] .pf-face {
   border-color: var(--plum-400);
   background: linear-gradient(135deg, #fff, color-mix(in srgb, var(--plum-50) 90%, transparent));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--plum-500) 18%, transparent), 0 28px 40px -16px rgba(229, 119, 86, 0.45);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--plum-500) 18%, transparent), 0 28px 40px -16px rgba(0, 168, 143, 0.45);
 }
 
 /* Template switch: each slab ripples in turn. */

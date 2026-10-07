@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     description: 'One AI agent across phone, video and chat, connected to the tools you already use.',
   },
   other: {
-    'theme-color': '#fdf9f5',
+    'theme-color': '#ffffff',
   },
 };
 
