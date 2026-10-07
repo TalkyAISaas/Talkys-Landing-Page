@@ -211,7 +211,7 @@ function VideoTile({ t }: { t: Copy['video'] }) {
           alt={t.imageAlt}
           width={800}
           height={1000}
-          className="aspect-[4/3] w-full object-cover object-top sm:aspect-[16/10] lg:aspect-[4/5]"
+          className="aspect-[4/5] w-full object-cover object-top sm:aspect-square lg:aspect-[4/5]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/10" />
 
