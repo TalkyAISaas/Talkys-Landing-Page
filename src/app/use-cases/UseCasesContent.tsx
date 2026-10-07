@@ -66,7 +66,7 @@ type Copy = {
 
 const copy: { en: Copy; ar: Copy } = {
   en: {
-    eyebrow: 'Solutions',
+    eyebrow: 'Use cases',
     title: 'One agent, shaped around your business',
     description:
       'Talkys answers your calls, video calls and chats, then does the work behind them: orders, bookings, follow-ups and updates in the tools you already use. Scroll to see it at work in your industry.',
@@ -164,7 +164,7 @@ const copy: { en: Copy; ar: Copy } = {
     closingSecondary: 'Read the FAQ',
   },
   ar: {
-    eyebrow: 'الحلول',
+    eyebrow: 'حالات الاستخدام',
     title: 'وكيل واحد مصمَّم على مقاس عملك',
     description:
       'يردّ Talkys على مكالماتك ومكالمات الفيديو والمحادثات، ثم ينجز العمل الذي يليها: الطلبات والحجوزات والمتابعات والتحديثات في الأدوات التي تستخدمها أصلاً. تابع التمرير لتراه يعمل في قطاعك.',

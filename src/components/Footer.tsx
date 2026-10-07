@@ -29,7 +29,7 @@ const copy = {
       {
         title: 'Company',
         links: [
-          { label: 'Solutions', href: '/use-cases' },
+          { label: 'Use cases', href: '/use-cases' },
           { label: 'About us', href: '/about' },
           { label: 'FAQ', href: '/faq' },
           { label: 'Book a demo', href: '/#contact' },
@@ -67,7 +67,7 @@ const copy = {
       {
         title: 'الشركة',
         links: [
-          { label: 'الحلول', href: '/use-cases' },
+          { label: 'حالات الاستخدام', href: '/use-cases' },
           { label: 'من نحن', href: '/about' },
           { label: 'الأسئلة الشائعة', href: '/faq' },
           { label: 'احجز عرضاً تجريبياً', href: '/#contact' },
